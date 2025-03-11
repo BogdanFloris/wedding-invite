@@ -1,0 +1,46 @@
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /app
+
+# Install required system packages
+RUN apk add --no-cache gcc musl-dev
+
+# Copy go.mod and go.sum files
+COPY go.mod go.sum* ./
+RUN go mod download
+
+# Install templ
+RUN go install github.com/a-h/templ/cmd/templ@latest
+
+# Copy source code
+COPY . .
+
+# Generate templ files
+RUN templ generate
+
+# Build
+RUN CGO_ENABLED=1 go build -o wedding-app ./cmd/server
+
+FROM alpine:3.19
+
+WORKDIR /app
+
+# Install required runtime dependencies
+RUN apk add --no-cache ca-certificates sqlite
+
+# Copy the binary from builder
+COPY --from=builder /app/wedding-app .
+
+# Copy static and template files
+COPY --from=builder /app/static ./static
+
+# Create volume for database
+VOLUME /data
+
+# Set environment variables
+ENV PORT=8080
+ENV DB_PATH=/data/wedding.db
+
+EXPOSE 8080
+
+CMD ["./wedding-app"]
