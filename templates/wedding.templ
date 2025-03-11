@@ -1,0 +1,127 @@
+package templates
+
+templ Wedding(invitationID string) {
+	@AuthBase("Our Wedding") {
+		<div class="bg-white rounded-lg shadow-md p-8 mb-8">
+			<div class="text-center mb-8">
+				<h1 class="text-4xl font-bold text-primary-dark mb-3">Ramona & Bogdan</h1>
+				<p class="text-lg text-gray-600">We're getting married!</p>
+				<div class="mt-6">
+					@countdownTimer()
+				</div>
+			</div>
+			
+			<div class="border-t border-b border-gray-200 py-8 my-8 text-center">
+				<div class="text-xl font-semibold mb-2">October 4, 2025</div>
+				<div class="text-lg text-gray-600">at 6:00 PM</div>
+				<div class="mt-4 text-gray-600">
+					Palatul Ghica Tei<br/>
+					Str. Doamna Ghica 3-5<br/>
+					Bucharest, Romania
+				</div>
+			</div>
+			
+			<div class="text-center">
+				<a 
+					href="/rsvp" 
+					class="inline-block bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300"
+				>
+					RSVP Now
+				</a>
+			</div>
+		</div>
+		
+		<!-- Event Details -->
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+			<div class="bg-white rounded-lg shadow-md p-6">
+				<h2 class="text-2xl font-semibold mb-4 text-primary-dark">Ceremony</h2>
+				<p class="mb-4">The ceremony will be held at Church Biserica Icoanei.</p>
+				<ul class="space-y-2 text-gray-600">
+					<li class="flex items-center">
+						<span class="mr-2">🕓</span> 2:00 PM - 3:00 PM
+					</li>
+				</ul>
+			</div>
+			
+			<div class="bg-white rounded-lg shadow-md p-6">
+				<h2 class="text-2xl font-semibold mb-4 text-primary-dark">Reception</h2>
+				<p class="mb-4">Join us for dinner, dancing, and celebration following the ceremony.</p>
+				<ul class="space-y-2 text-gray-600">
+					<li class="flex items-center">
+						<span class="mr-2">🕓</span> 6:00 PM - Morning
+					</li>
+					<li class="flex items-center">
+						<span class="mr-2">🍽️</span> Dinner & Dancing
+					</li>
+				</ul>
+			</div>
+		</div>
+		
+		<!-- Navigation Links -->
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+			<a href="/travel" class="bg-secondary-light hover:bg-secondary p-5 rounded-lg text-center transition duration-300 shadow-sm">
+				<h3 class="font-semibold text-lg mb-2">Travel & Accommodations</h3>
+				<p class="text-sm text-gray-600">Where to stay and how to get here</p>
+			</a>
+			<a href="/faq" class="bg-secondary-light hover:bg-secondary p-5 rounded-lg text-center transition duration-300 shadow-sm">
+				<h3 class="font-semibold text-lg mb-2">FAQ</h3>
+				<p class="text-sm text-gray-600">Questions & Answers</p>
+			</a>
+		</div>
+	}
+}
+
+templ countdownTimer() {
+	<div class="grid grid-cols-4 gap-4 max-w-md mx-auto">
+		<div class="bg-primary-light rounded-lg p-3 text-center">
+			<div class="text-3xl font-bold text-primary-dark" id="countdown-days">--</div>
+			<div class="text-xs text-gray-600">Days</div>
+		</div>
+		<div class="bg-primary-light rounded-lg p-3 text-center">
+			<div class="text-3xl font-bold text-primary-dark" id="countdown-hours">--</div>
+			<div class="text-xs text-gray-600">Hours</div>
+		</div>
+		<div class="bg-primary-light rounded-lg p-3 text-center">
+			<div class="text-3xl font-bold text-primary-dark" id="countdown-minutes">--</div>
+			<div class="text-xs text-gray-600">Minutes</div>
+		</div>
+		<div class="bg-primary-light rounded-lg p-3 text-center">
+			<div class="text-3xl font-bold text-primary-dark" id="countdown-seconds">--</div>
+			<div class="text-xs text-gray-600">Seconds</div>
+		</div>
+	</div>
+	
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			const weddingDate = new Date(2025, 9, 4, 19, 0, 0);
+			
+			updateCountdown();
+			
+			setInterval(updateCountdown, 1000);
+			
+			function updateCountdown() {
+				const now = new Date().getTime();
+				
+				const distance = weddingDate.getTime() - now;
+				
+				if (distance <= 0) {
+					document.getElementById("countdown-days").textContent = "0";
+					document.getElementById("countdown-hours").textContent = "0";
+					document.getElementById("countdown-minutes").textContent = "0";
+					document.getElementById("countdown-seconds").textContent = "0";
+					return;
+				}
+				
+				const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+				const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+				const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+				const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+				
+				document.getElementById("countdown-days").textContent = days;
+				document.getElementById("countdown-hours").textContent = hours;
+				document.getElementById("countdown-minutes").textContent = minutes;
+				document.getElementById("countdown-seconds").textContent = seconds;
+			}
+		});
+	</script>
+}

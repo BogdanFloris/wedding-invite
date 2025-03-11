@@ -2,8 +2,10 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -14,6 +16,17 @@ func Initialize() error {
 	dbPath := os.Getenv("DB_PATH")
 	if dbPath == "" {
 		dbPath = "wedding.db"
+	}
+
+	log.Printf("Using database at: %s", dbPath)
+
+	// Ensure the directory exists (for SQLite)
+	dbDir := filepath.Dir(dbPath)
+	if _, err := os.Stat(dbDir); os.IsNotExist(err) {
+		log.Printf("Creating database directory: %s", dbDir)
+		if err := os.MkdirAll(dbDir, 0755); err != nil {
+			return fmt.Errorf("failed to create database directory: %w", err)
+		}
 	}
 
 	var err error
@@ -33,14 +46,32 @@ func Initialize() error {
 func setupSchema() error {
 	// Create tables if they don't exist
 	_, err := DB.Exec(`
-		CREATE TABLE IF NOT EXISTS guests (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			name TEXT NOT NULL,
+		CREATE TABLE IF NOT EXISTS invitations (
+			id TEXT PRIMARY KEY,
+			family_name TEXT NOT NULL,
+			max_guests INTEGER NOT NULL,
 			email TEXT,
 			phone TEXT,
-			attending BOOLEAN DEFAULT false,
-			plus_ones INTEGER DEFAULT 0,
-			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			last_access TIMESTAMP
+		);
+		
+		CREATE TABLE IF NOT EXISTS guests (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			invitation_id TEXT REFERENCES invitations(id),
+			name TEXT NOT NULL,
+			attending BOOLEAN DEFAULT NULL,
+			meal_preference TEXT,
+			dietary_restrictions TEXT,
+			last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+		
+		CREATE TABLE IF NOT EXISTS sessions (
+			id TEXT PRIMARY KEY,
+			invitation_id TEXT REFERENCES invitations(id),
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			expires_at TIMESTAMP,
+			ip_address_hash TEXT -- Storing hashed IP for rate limiting while preserving privacy
 		);
 	`)
 	

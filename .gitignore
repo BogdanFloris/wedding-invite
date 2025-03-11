@@ -40,3 +40,9 @@ go.work
 # OS specific files
 .DS_Store
 Thumbs.db
+
+# Environment variables
+.env
+
+# Data directory
+/data/
