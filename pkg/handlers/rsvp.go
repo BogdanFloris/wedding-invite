@@ -6,13 +6,50 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-
+	"time"
 	"wedding-invite/pkg/middleware"
 	"wedding-invite/pkg/models"
 	"wedding-invite/templates"
 )
 
-// HandleRSVP displays and processes the RSVP form
+// renderRSVPForm is a helper function to render the RSVP form with the latest data
+func renderRSVPForm(w http.ResponseWriter, r *http.Request, invitationID string, successMsg string) {
+	// Get guest data
+	guests, err := models.GetGuestsByInvitation(invitationID)
+	if err != nil {
+		log.Printf("Error fetching guests: %v", err)
+		http.Error(w, "Failed to load guest data", http.StatusInternalServerError)
+		return
+	}
+
+	// Get family name
+	familyName, err := models.GetInvitationName(invitationID)
+	if err != nil {
+		log.Printf("Error fetching family name: %v", err)
+		http.Error(w, "Failed to load invitation data", http.StatusInternalServerError)
+		return
+	}
+
+	// Check if more guests can be added
+	canAddMore, err := models.CheckCanAddGuest(invitationID)
+	if err != nil {
+		log.Printf("Error checking guest limit: %v", err)
+		canAddMore = false // Default to false on error
+	}
+
+	// Get max guests
+	maxGuests, err := models.GetMaxGuestCount(invitationID)
+	if err != nil {
+		log.Printf("Error fetching max guests: %v", err)
+		maxGuests = len(guests) // Default to current count on error
+	}
+
+	// Render RSVP form
+	templates.RSVPForm(familyName, invitationID, guests, canAddMore, maxGuests, models.MealOptions, successMsg).
+		Render(r.Context(), w)
+}
+
+// HandleRSVP displays the RSVP form
 func HandleRSVP() http.Handler {
 	return middleware.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Get session from context
@@ -22,60 +59,18 @@ func HandleRSVP() http.Handler {
 			return
 		}
 
-		invitationID := session.InvitationID
-
-		// Get guest data
-		guests, err := models.GetGuestsByInvitation(invitationID)
-		if err != nil {
-			log.Printf("Error fetching guests: %v", err)
-			http.Error(w, "Failed to load guest data", http.StatusInternalServerError)
-			return
-		}
-
-		// Get family name
-		familyName, err := models.GetInvitationName(invitationID)
-		if err != nil {
-			log.Printf("Error fetching family name: %v", err)
-			http.Error(w, "Failed to load invitation data", http.StatusInternalServerError)
-			return
-		}
-
-		// Check if more guests can be added
-		canAddMore, err := models.CheckCanAddGuest(invitationID)
-		if err != nil {
-			log.Printf("Error checking guest limit: %v", err)
-			canAddMore = false // Default to false on error
-		}
-
-		// Get max guests
-		maxGuests, err := models.GetMaxGuestCount(invitationID)
-		if err != nil {
-			log.Printf("Error fetching max guests: %v", err)
-			maxGuests = len(guests) // Default to current count on error
-		}
-
 		// Check for success message
 		successMsg := ""
 		if r.URL.Query().Get("success") == "true" {
 			successMsg = "Your RSVP has been successfully submitted!"
 		}
 
-		// Render RSVP form
-		templates.RSVPForm(familyName, invitationID, guests, canAddMore, maxGuests, models.MealOptions, successMsg).
-			Render(r.Context(), w)
+		renderRSVPForm(w, r, session.InvitationID, successMsg)
 	}))
 }
 
-// HandleQuickAdd shows the quick add form for the first guest
-func HandleQuickAdd() http.Handler {
-	return middleware.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Render the quick add form
-		templates.QuickAddForm().Render(r.Context(), w)
-	}))
-}
-
-// HandleAddFirst adds the first guest and shows the main RSVP form
-func HandleAddFirst() http.Handler {
+// HandleAddGuest adds a new guest and redirects back to the RSVP page
+func HandleAddGuest() http.Handler {
 	return middleware.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Get session from context
 		session := middleware.GetSessionFromContext(r)
@@ -86,79 +81,48 @@ func HandleAddFirst() http.Handler {
 
 		invitationID := session.InvitationID
 
-		// Parse the form
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "Invalid form data", http.StatusBadRequest)
+		// Check if we can add more guests first
+		canAdd, err := models.CheckCanAddGuest(invitationID)
+		if err != nil || !canAdd {
+			log.Printf("Cannot add more guests: %v", err)
+			http.Error(w, "Maximum number of guests reached", http.StatusBadRequest)
 			return
 		}
 
-		// Get guest name
-		guestName := strings.TrimSpace(r.Form.Get("guest_name"))
-		if guestName == "" {
-			http.Error(w, "Guest name is required", http.StatusBadRequest)
-			return
+		var guestName string
+
+		// For GET requests (direct link clicks), use default name
+		// For POST requests (form submissions), get name from form
+		if r.Method == http.MethodPost {
+			// Parse the form
+			if err := r.ParseForm(); err != nil {
+				http.Error(w, "Invalid form data", http.StatusBadRequest)
+				return
+			}
+
+			// Get guest name from form
+			guestName = strings.TrimSpace(r.Form.Get("guest_name"))
 		}
 
-		// Create the first guest
-		_, err := models.CreateGuest(invitationID, guestName)
+		// If no name was provided, leave it blank and let user fill it in
+		// Empty guest names will be displayed with a placeholder in the UI
+
+		// Create the guest
+		_, err = models.CreateGuest(invitationID, guestName)
 		if err != nil {
-			log.Printf("Error creating first guest: %v", err)
+			log.Printf("Error creating guest: %v", err)
 			http.Error(w, "Failed to add guest", http.StatusInternalServerError)
 			return
 		}
 
-		// Get updated guest data
-		guests, err := models.GetGuestsByInvitation(invitationID)
-		if err != nil {
-			log.Printf("Error fetching guests: %v", err)
-			http.Error(w, "Failed to load guest data", http.StatusInternalServerError)
-			return
-		}
-
-		// Get family name
-		familyName, err := models.GetInvitationName(invitationID)
-		if err != nil {
-			log.Printf("Error fetching family name: %v", err)
-			http.Error(w, "Failed to load invitation data", http.StatusInternalServerError)
-			return
-		}
-
-		// Check if more guests can be added
-		canAddMore, err := models.CheckCanAddGuest(invitationID)
-		if err != nil {
-			log.Printf("Error checking guest limit: %v", err)
-			canAddMore = false
-		}
-
-		// Get max guests
-		maxGuests, err := models.GetMaxGuestCount(invitationID)
-		if err != nil {
-			log.Printf("Error fetching max guests: %v", err)
-			maxGuests = len(guests)
-		}
-
-		// Render the main RSVP form content
-		templates.RsvpFormContent(familyName, invitationID, guests, canAddMore, maxGuests, models.MealOptions).
-			Render(r.Context(), w)
+		// Redirect to the RSVP page with a timestamp to prevent caching
+		timestamp := time.Now().Unix()
+		redirectURL := fmt.Sprintf("/rsvp?t=%d", timestamp)
+		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 	}))
 }
 
-// HandleAddGuestForm returns the form for adding a new guest
-func HandleAddGuestForm() http.Handler {
-	return middleware.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Get the current guest count
-		countStr := r.URL.Query().Get("count")
-		count, err := strconv.Atoi(countStr)
-		if err != nil {
-			count = 0 // Default if not provided
-		}
-
-		// Render the new guest form
-		templates.NewGuestForm(count, models.MealOptions).Render(r.Context(), w)
-	}))
-}
-
-// HandleDeleteGuest handles HTMX delete requests for guests
+// HandleDeleteGuest removes a guest and redirects back to the RSVP page
 func HandleDeleteGuest() http.Handler {
 	return middleware.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Get session from context
@@ -169,7 +133,7 @@ func HandleDeleteGuest() http.Handler {
 		}
 
 		invitationID := session.InvitationID
-
+		
 		// Extract guest ID from URL
 		// Expected format: /rsvp/guest/123
 		pathParts := strings.Split(r.URL.Path, "/")
@@ -177,7 +141,7 @@ func HandleDeleteGuest() http.Handler {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
 			return
 		}
-
+		
 		guestIDStr := pathParts[len(pathParts)-1]
 		guestID, err := strconv.ParseInt(guestIDStr, 10, 64)
 		if err != nil {
@@ -185,6 +149,10 @@ func HandleDeleteGuest() http.Handler {
 			return
 		}
 
+		// For standard GET requests (direct clicks on links)
+		// For DELETE requests (from HTMX)
+		// Both should be handled the same way
+		
 		// Delete the guest
 		err = models.DeleteGuest(guestID, invitationID)
 		if err != nil {
@@ -192,40 +160,12 @@ func HandleDeleteGuest() http.Handler {
 			http.Error(w, "Failed to delete guest", http.StatusInternalServerError)
 			return
 		}
-
-		// Return the updated form content
-		guests, err := models.GetGuestsByInvitation(invitationID)
-		if err != nil {
-			log.Printf("Error fetching guests after delete: %v", err)
-			http.Error(w, "Failed to load guest data", http.StatusInternalServerError)
-			return
-		}
-
-		// Get family name
-		familyName, err := models.GetInvitationName(invitationID)
-		if err != nil {
-			log.Printf("Error fetching family name: %v", err)
-			http.Error(w, "Failed to load invitation data", http.StatusInternalServerError)
-			return
-		}
-
-		// Check if more guests can be added
-		canAddMore, err := models.CheckCanAddGuest(invitationID)
-		if err != nil {
-			log.Printf("Error checking guest limit: %v", err)
-			canAddMore = false
-		}
-
-		// Get max guests
-		maxGuests, err := models.GetMaxGuestCount(invitationID)
-		if err != nil {
-			log.Printf("Error fetching max guests: %v", err)
-			maxGuests = len(guests)
-		}
-
-		// Render updated RSVP form
-		templates.RsvpFormContent(familyName, invitationID, guests, canAddMore, maxGuests, models.MealOptions).
-			Render(r.Context(), w)
+		
+		// Redirect to the RSVP page with a specific GET parameter to force reload
+		// Adding a timestamp to bust any cache
+		timestamp := time.Now().Unix()
+		redirectURL := fmt.Sprintf("/rsvp?t=%d", timestamp)
+		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 	}))
 }
 
@@ -280,48 +220,9 @@ func HandleSubmitRSVP() http.Handler {
 			}
 
 			// Update guest RSVP status
-			err = models.UpdateGuestRSVP(
-				guestID,
-				partyAttending,
-				mealPreference,
-				dietaryRestrictions,
-			)
+			err = models.UpdateGuestRSVP(guestID, partyAttending, mealPreference, dietaryRestrictions)
 			if err != nil {
 				log.Printf("Error updating RSVP for guest %d: %v", guestID, err)
-			}
-		}
-
-		// Process any new guests
-		for i := 0; i < 10; i++ { // Limit to reasonable number to prevent abuse
-			nameField := fmt.Sprintf("new_guest_name_%d", i)
-			name := r.Form.Get(nameField)
-
-			if name == "" {
-				continue // No more new guests
-			}
-
-			mealField := fmt.Sprintf("new_guest_meal_%d", i)
-			dietaryField := fmt.Sprintf("new_guest_dietary_%d", i)
-
-			mealPreference := r.Form.Get(mealField)
-			dietaryRestrictions := r.Form.Get(dietaryField)
-
-			// Create the new guest
-			guestID, err := models.CreateGuest(invitationID, name)
-			if err != nil {
-				log.Printf("Error creating new guest: %v", err)
-				continue
-			}
-
-			// Update the new guest's RSVP status
-			err = models.UpdateGuestRSVP(
-				guestID,
-				partyAttending,
-				mealPreference,
-				dietaryRestrictions,
-			)
-			if err != nil {
-				log.Printf("Error updating new guest RSVP: %v", err)
 			}
 		}
 
@@ -367,14 +268,5 @@ func HandleRSVPStatus() http.Handler {
 
 		// Render RSVP status page
 		templates.RSVPStatus(familyName, guests).Render(r.Context(), w)
-	}))
-}
-
-// HandleCancelNewGuest handles canceling the addition of a new guest
-func HandleCancelNewGuest() http.Handler {
-	return middleware.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Nothing needs to be done since we're using hx-swap="delete"
-		// Just return a 200 OK status
-		w.WriteHeader(http.StatusOK)
 	}))
 }

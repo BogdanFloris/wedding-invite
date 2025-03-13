@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+
 	"wedding-invite/pkg/db"
 	"wedding-invite/pkg/handlers"
 	"wedding-invite/pkg/middleware"
@@ -61,10 +62,7 @@ func main() {
 	mux.Handle("/rsvp/guest/", handlers.HandleDeleteGuest())
 
 	// HTMX endpoints for the new RSVP flow
-	mux.Handle("/rsvp/quick-add", handlers.HandleQuickAdd())
-	mux.Handle("/rsvp/add-first", handlers.HandleAddFirst())
-	mux.Handle("/rsvp/add-guest-form", handlers.HandleAddGuestForm())
-	mux.Handle("/rsvp/cancel-new-guest", handlers.HandleCancelNewGuest())
+	mux.Handle("/rsvp/add-guest", handlers.HandleAddGuest())
 	mux.Handle("/rsvp/submit", handlers.HandleSubmitRSVP())
 
 	// Handle invitation code URL pattern (e.g., /abc123)
