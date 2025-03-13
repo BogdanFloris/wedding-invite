@@ -20,9 +20,13 @@ type Guest struct {
 
 // MealOptions defines available meal choices
 var MealOptions = []string{
-	"Normal",
-	"Vegetarian",
-	"Staff",
+	"Standard",
+	"Vegetarian", // Meniu vegetarian nunta
+	"Ovo-Lacto Vegetarian", // Meniu ovo-lacto vegetarian nunta
+	"Ovo-Lacto with Fish", // Meniu ovo-lacto cu peste nunta
+	"Muslim", // Meniu musulmani nunta
+	"Gluten-Free", // Meniu fara Gluten
+	"Lactose-Free", // Meniu fara lactoza
 	"Child",
 }
 
