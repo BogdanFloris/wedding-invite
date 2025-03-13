@@ -95,7 +95,7 @@ func main() {
 	if *generateQR {
 		// Create output directory if it doesn't exist
 		if _, err := os.Stat(*outputDir); os.IsNotExist(err) {
-			if err := os.MkdirAll(*outputDir, 0755); err != nil {
+			if err := os.MkdirAll(*outputDir, 0o755); err != nil {
 				log.Printf("Warning: Failed to create output directory: %v", err)
 			}
 		}

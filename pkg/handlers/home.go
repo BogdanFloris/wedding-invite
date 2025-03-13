@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 	"strings"
-	
 	"wedding-invite/pkg/auth"
 	"wedding-invite/pkg/middleware"
 	"wedding-invite/templates"
@@ -19,11 +18,11 @@ func Home() http.Handler {
 				HandleInviteCode().ServeHTTP(w, r)
 				return
 			}
-			
+
 			http.NotFound(w, r)
 			return
 		}
-		
+
 		// Check if there's an error message
 		errorMsg := ""
 		if errType := r.URL.Query().Get("error"); errType != "" {
@@ -36,7 +35,7 @@ func Home() http.Handler {
 				errorMsg = "System error. Please try again later."
 			}
 		}
-		
+
 		// Try to get existing session
 		session, _ := auth.GetSessionFromRequest(r)
 		if session != nil {
@@ -44,7 +43,7 @@ func Home() http.Handler {
 			http.Redirect(w, r, "/wedding", http.StatusFound)
 			return
 		}
-		
+
 		// Render login page
 		templates.Login(errorMsg).Render(r.Context(), w)
 	})
@@ -60,7 +59,7 @@ func Wedding() http.Handler {
 			http.Redirect(w, r, "/?error=auth_required", http.StatusFound)
 			return
 		}
-		
+
 		// Render wedding info page
 		templates.Wedding(session.InvitationID).Render(r.Context(), w)
 	}))

@@ -5,13 +5,12 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	
-	"github.com/joho/godotenv"
-	
 	"wedding-invite/pkg/db"
 	"wedding-invite/pkg/handlers"
 	"wedding-invite/pkg/middleware"
 	"wedding-invite/pkg/security"
+
+	"github.com/joho/godotenv"
 )
 
 func init() {
@@ -33,7 +32,7 @@ func main() {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 	defer db.Close()
-	
+
 	// Initialize security package
 	if err := security.Initialize(); err != nil {
 		log.Fatalf("Failed to initialize security: %v", err)
@@ -46,25 +45,31 @@ func main() {
 
 	// Create a mux for routing
 	mux := http.NewServeMux()
-	
+
 	// Apply CSRF protection to all routes
 	handler := middleware.CSRF(mux)
-	
+
 	// Public routes
 	mux.Handle("/", handlers.Home())
 	mux.Handle("/login", handlers.HandleLogin())
 	mux.Handle("/logout", handlers.HandleLogout())
-	
+
 	// Protected routes
 	mux.Handle("/wedding", handlers.Wedding())
 	mux.Handle("/rsvp", handlers.HandleRSVP())
 	mux.Handle("/rsvp/status", handlers.HandleRSVPStatus())
-	mux.Handle("/rsvp/add-guest-fields", handlers.HandleAddGuestFields())
 	mux.Handle("/rsvp/guest/", handlers.HandleDeleteGuest())
-	
+
+	// HTMX endpoints for the new RSVP flow
+	mux.Handle("/rsvp/quick-add", handlers.HandleQuickAdd())
+	mux.Handle("/rsvp/add-first", handlers.HandleAddFirst())
+	mux.Handle("/rsvp/add-guest-form", handlers.HandleAddGuestForm())
+	mux.Handle("/rsvp/cancel-new-guest", handlers.HandleCancelNewGuest())
+	mux.Handle("/rsvp/submit", handlers.HandleSubmitRSVP())
+
 	// Handle invitation code URL pattern (e.g., /abc123)
 	// This is a special case that's handled in the Home handler
-	
+
 	// Serve static files
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 

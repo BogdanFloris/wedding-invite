@@ -21,77 +21,10 @@ templ RSVPForm(familyName, invitationID string, guests []models.Guest, canAddGue
 						<p class="text-center">{ successMsg }</p>
 					</div>
 				}
-				if len(guests) == 0 && canAddGuest {
-					<div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-8">
-						<p class="text-center text-yellow-800">
-							Please add yourself and any additional guests below.
-						</p>
-					</div>
-					@addGuestForm()
-				} else {
-					<form id="rsvp-form" method="POST" action="/rsvp" class="space-y-8 mb-6">
-						<input type="hidden" name="action" value="update_rsvp"/>
-						<!-- Attendance choice for the whole party -->
-						<div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
-							<h3 class="text-xl font-semibold text-gray-800 mb-4">Will your party be attending?</h3>
-							<div class="flex space-x-6">
-								<label class="inline-flex items-center">
-									<input
-										type="radio"
-										name="party_attending"
-										value="yes"
-										class="form-radio h-5 w-5 text-primary"
-										required="required"
-									/>
-									<span class="ml-2">Yes, we'll be there</span>
-								</label>
-								<label class="inline-flex items-center">
-									<input
-										type="radio"
-										name="party_attending"
-										value="no"
-										class="form-radio h-5 w-5 text-red-500"
-										required="required"
-									/>
-									<span class="ml-2">No, we can't make it</span>
-								</label>
-							</div>
-						</div>
-						<div id="guest-list" class="space-y-6">
-							for _, guest := range guests {
-								@GuestForm(guest, mealOptions)
-							}
-						</div>
-						if canAddGuest {
-							<div class="mt-6">
-								<button
-									type="button"
-									id="add-guest-btn"
-									class="text-primary hover:text-primary-dark font-medium py-2 px-4 rounded-md transition duration-300 flex items-center"
-									hx-get="/rsvp/add-guest-fields"
-									hx-target="#guest-list"
-									hx-swap="beforeend"
-								>
-									<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-										<path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path>
-									</svg>
-									Add Guest ({ strconv.Itoa(len(guests)) }/{ strconv.Itoa(maxGuests) })
-								</button>
-								<p class="text-sm text-gray-500 mt-1 ml-2">
-									You can add up to { strconv.Itoa(maxGuests) } total guests to your party.
-								</p>
-							</div>
-						}
-						<div class="mt-8 flex justify-center">
-							<button
-								type="submit"
-								class="bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300"
-							>
-								Submit RSVP
-							</button>
-						</div>
-					</form>
-				}
+				<!-- Main RSVP Form -->
+				<div id="rsvp-container">
+					@RsvpFormContent(familyName, invitationID, guests, canAddGuest, maxGuests, mealOptions)
+				</div>
 				<div class="mt-8 pt-6 border-t border-gray-200 text-center">
 					<p class="text-sm text-gray-500">
 						If you need to make changes to your RSVP after submitting, you can return to this page anytime.
@@ -102,28 +35,139 @@ templ RSVPForm(familyName, invitationID string, guests []models.Guest, canAddGue
 	}
 }
 
-// GuestForm renders the form for an individual guest without the attendance question
-templ GuestForm(guest models.Guest, mealOptions []string) {
-	<div id={ "guest-" + strconv.FormatInt(guest.ID, 10) } class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+// RsvpFormContent renders the main RSVP form content
+templ RsvpFormContent(familyName, invitationID string, guests []models.Guest, canAddGuest bool, maxGuests int, mealOptions []string) {
+	if len(guests) == 0 && canAddGuest {
+		<div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-8">
+			<p class="text-center text-yellow-800">
+				Please add yourself and any additional guests below.
+			</p>
+		</div>
+		<div class="text-center">
+			<button
+				class="inline-flex items-center bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded-md transition duration-300"
+				hx-post="/rsvp/quick-add"
+				hx-target="#rsvp-container"
+				hx-swap="innerHTML"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+					<path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path>
+				</svg>
+				Add First Guest
+			</button>
+		</div>
+	} else {
+		<form id="rsvp-form" hx-post="/rsvp/submit" hx-target="#rsvp-container" hx-swap="innerHTML">
+			<input type="hidden" name="invitation_id" value={ invitationID }/>
+			<!-- Attendance choice for the whole party -->
+			<div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
+				<h3 class="text-xl font-semibold text-gray-800 mb-4">Will your party be attending?</h3>
+				<div class="flex space-x-6">
+					<label class="inline-flex items-center">
+						<input
+							type="radio"
+							name="party_attending"
+							value="yes"
+							class="form-radio h-5 w-5 text-primary"
+							required="required"
+							if anyGuestsAttending(guests) {
+								checked
+							}
+						/>
+						<span class="ml-2">Yes, we'll be there</span>
+					</label>
+					<label class="inline-flex items-center">
+						<input
+							type="radio"
+							name="party_attending"
+							value="no"
+							class="form-radio h-5 w-5 text-red-500"
+							required="required"
+							if allGuestsNotAttending(guests) {
+								checked
+							}
+						/>
+						<span class="ml-2">No, we can't make it</span>
+					</label>
+				</div>
+			</div>
+			<!-- Guest Information Section -->
+			<div class="mb-6">
+				<div class="flex justify-between items-center mb-4">
+					<h3 class="text-lg font-semibold text-gray-700">Guest Information</h3>
+					<span class="text-sm text-gray-500">{ strconv.Itoa(len(guests)) } of { strconv.Itoa(maxGuests) } guests</span>
+				</div>
+				<div id="guests-container" class="space-y-4">
+					for i, guest := range guests {
+						@GuestCard(guest, mealOptions, i)
+					}
+				</div>
+				if canAddGuest && len(guests) < maxGuests {
+					<div class="mt-6 text-center">
+						<button
+							type="button"
+							class="inline-flex items-center text-primary hover:text-primary-dark font-medium py-2 px-4 rounded-md transition duration-300 border border-primary hover:border-primary-dark"
+							hx-get={ "/rsvp/add-guest-form?count=" + strconv.Itoa(len(guests)) }
+							hx-target="#guests-container"
+							hx-swap="beforeend"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+								<path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path>
+							</svg>
+							Add Another Guest
+						</button>
+					</div>
+				}
+			</div>
+			<div class="mt-8 flex justify-center">
+				<button
+					type="submit"
+					class="bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300"
+				>
+					Submit RSVP
+				</button>
+			</div>
+		</form>
+	}
+}
+
+// GuestCard renders a card with guest information
+templ GuestCard(guest models.Guest, mealOptions []string, index int) {
+	<div id={ "guest-" + strconv.FormatInt(guest.ID, 10) } class="bg-gray-50 p-5 rounded-lg border border-gray-200">
 		<div class="flex justify-between items-start mb-4">
-			<h3 class="text-xl font-semibold text-gray-800">{ guest.Name }</h3>
+			<div class="flex items-center">
+				<span class="bg-primary text-white rounded-full w-7 h-7 flex items-center justify-center mr-3">
+					{ strconv.Itoa(index + 1) }
+				</span>
+				<h3 class="text-lg font-semibold text-gray-800">{ guest.Name }</h3>
+			</div>
 			<button
 				type="button"
 				class="text-red-500 hover:text-red-700 text-sm"
 				hx-delete={ "/rsvp/guest/" + strconv.FormatInt(guest.ID, 10) }
-				hx-target={ "#guest-" + strconv.FormatInt(guest.ID, 10) }
-				hx-swap="outerHTML"
-				hx-confirm="Are you sure you want to remove this guest?"
+				hx-target="#rsvp-container"
+				hx-swap="innerHTML"
 			>
 				Remove
 			</button>
 		</div>
-		<div class="space-y-4">
-			<input type="hidden" name={ "guest_id_" + strconv.FormatInt(guest.ID, 10) } value={ strconv.FormatInt(guest.ID, 10) }/>
-			<div class="mb-4" id={ "meal-section-" + strconv.FormatInt(guest.ID, 10) }>
-				<label class="block text-gray-700 font-medium mb-2">Meal Preference</label>
+		<!-- Hidden input to track this guest -->
+		<input type="hidden" name="guest_ids[]" value={ strconv.FormatInt(guest.ID, 10) }/>
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<div>
+				<label class="block text-gray-700 text-sm font-medium mb-2">Name</label>
+				<input
+					type="text"
+					name={ "guest_name_" + strconv.FormatInt(guest.ID, 10) }
+					value={ guest.Name }
+					class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+					required="required"
+				/>
+			</div>
+			<div>
+				<label class="block text-gray-700 text-sm font-medium mb-2">Meal Preference</label>
 				<select
-					name={ "meal_" + strconv.FormatInt(guest.ID, 10) }
+					name={ "guest_meal_" + strconv.FormatInt(guest.ID, 10) }
 					class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
 				>
 					<option value="">Select a meal option</option>
@@ -139,86 +183,119 @@ templ GuestForm(guest models.Guest, mealOptions []string) {
 					}
 				</select>
 			</div>
-			<div class="mb-4">
-				<label class="block text-gray-700 font-medium mb-2">Dietary Restrictions or Special Needs</label>
-				<textarea
-					name={ "dietary_" + strconv.FormatInt(guest.ID, 10) }
-					rows="2"
-					class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
-					placeholder="Please list any allergies or special needs"
-				>
-					if guest.DietaryRestrictions.Valid {
-						{ guest.DietaryRestrictions.String }
-					}
-				</textarea>
-			</div>
+		</div>
+		<div class="mt-4">
+			<label class="block text-gray-700 text-sm font-medium mb-2">Dietary Restrictions or Special Needs</label>
+			<textarea
+				name={ "guest_dietary_" + strconv.FormatInt(guest.ID, 10) }
+				rows="2"
+				class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+				placeholder="Please list any allergies or special needs"
+			>
+				if guest.DietaryRestrictions.Valid {
+					{ guest.DietaryRestrictions.String }
+				}
+			</textarea>
 		</div>
 	</div>
 }
 
-// NewGuestFields renders the form fields for a new guest
-templ NewGuestFields() {
-	<div class="bg-gray-50 p-6 rounded-lg border border-gray-200 border-dashed animate-fadeIn">
-		<div class="space-y-4">
-			<div class="mb-4">
-				<label class="block text-gray-700 font-medium mb-2">Guest Name</label>
+// NewGuestForm renders the form for adding a new guest
+templ NewGuestForm(index int, mealOptions []string) {
+	<div id={ "new-guest-" + strconv.Itoa(index) } class="bg-gray-50 p-5 rounded-lg border border-gray-200 border-dashed animate-fadeIn">
+		<div class="flex justify-between items-start mb-4">
+			<div class="flex items-center">
+				<span class="bg-secondary text-white rounded-full w-7 h-7 flex items-center justify-center mr-3">
+					{ strconv.Itoa(index + 1) }
+				</span>
+				<h3 class="text-lg font-medium text-gray-800">New Guest</h3>
+			</div>
+			<button
+				type="button"
+				class="text-red-500 hover:text-red-700 text-sm"
+				hx-post="/rsvp/cancel-new-guest"
+				hx-target={ "#new-guest-" + strconv.Itoa(index) }
+				hx-swap="delete"
+			>
+				Cancel
+			</button>
+		</div>
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<div>
+				<label class="block text-gray-700 text-sm font-medium mb-2">Name</label>
 				<input
 					type="text"
-					name="new_guest_name"
+					name={ "new_guest_name_" + strconv.Itoa(index) }
 					class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
 					placeholder="Enter guest name"
 					required="required"
 				/>
 			</div>
-			<div class="mb-4">
-				<label class="block text-gray-700 font-medium mb-2">Meal Preference</label>
+			<div>
+				<label class="block text-gray-700 text-sm font-medium mb-2">Meal Preference</label>
 				<select
-					name="new_guest_meal"
+					name={ "new_guest_meal_" + strconv.Itoa(index) }
 					class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
 				>
 					<option value="">Select a meal option</option>
-					for _, meal := range models.MealOptions {
+					for _, meal := range mealOptions {
 						<option value={ meal }>{ meal }</option>
 					}
 				</select>
 			</div>
-			<div class="mb-4">
-				<label class="block text-gray-700 font-medium mb-2">Dietary Restrictions or Special Needs</label>
-				<textarea
-					name="new_guest_dietary"
-					rows="2"
-					class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
-					placeholder="Please list any allergies or special needs"
-				></textarea>
-			</div>
+		</div>
+		<div class="mt-4">
+			<label class="block text-gray-700 text-sm font-medium mb-2">Dietary Restrictions or Special Needs</label>
+			<textarea
+				name={ "new_guest_dietary_" + strconv.Itoa(index) }
+				rows="2"
+				class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+				placeholder="Please list any allergies or special needs"
+			></textarea>
 		</div>
 	</div>
 }
 
-// addGuestForm renders the form to add a new guest
-templ addGuestForm() {
-	<form method="POST" action="/rsvp" class="mt-4">
-		<input type="hidden" name="action" value="add_guest"/>
-		<div class="flex space-x-4">
-			<div class="flex-grow">
+// QuickAddForm renders a simple name-only form for the first guest
+templ QuickAddForm() {
+	<div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
+		<h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Let's get started with your RSVP</h3>
+		<form class="max-w-md mx-auto" hx-post="/rsvp/add-first" hx-target="#rsvp-container" hx-swap="innerHTML">
+			<div class="mb-4">
+				<label class="block text-gray-700 font-medium mb-2">Your Name</label>
 				<input
 					type="text"
 					name="guest_name"
-					placeholder="Enter guest name"
+					class="block w-full bg-white border border-gray-300 rounded-md py-3 px-4 focus:outline-none focus:ring-primary focus:border-primary"
+					placeholder="Enter your name"
 					required="required"
-					class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
 				/>
 			</div>
-			<div>
+			<div class="text-center mt-6">
 				<button
 					type="submit"
-					class="bg-secondary hover:bg-secondary-dark text-white font-medium py-2 px-4 rounded-md transition duration-300"
+					class="bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300"
 				>
-					Add Guest
+					Continue to RSVP
 				</button>
 			</div>
+		</form>
+	</div>
+}
+
+// SuccessMessage renders a success message after RSVP submission
+templ SuccessMessage(familyName string) {
+	<div class="text-center py-8">
+		<div class="bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg mb-6 inline-block">
+			<h3 class="text-xl font-bold mb-2">Thank You!</h3>
+			<p>Your RSVP for { familyName } has been successfully recorded.</p>
 		</div>
-	</form>
+		<div class="mt-8">
+			<a href="/rsvp/status" class="bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300">
+				View RSVP Status
+			</a>
+		</div>
+	</div>
 }
 
 // RSVPStatus renders the RSVP status page
@@ -300,4 +377,28 @@ templ RSVPStatus(familyName string, guests []models.Guest) {
 			</div>
 		</div>
 	}
+}
+
+// Helper function to check if any guests are attending
+func anyGuestsAttending(guests []models.Guest) bool {
+	for _, guest := range guests {
+		if guest.Attending.Valid && guest.Attending.Bool {
+			return true
+		}
+	}
+	return false
+}
+
+// Helper function to check if all guests are not attending
+func allGuestsNotAttending(guests []models.Guest) bool {
+	if len(guests) == 0 {
+		return false
+	}
+
+	for _, guest := range guests {
+		if !guest.Attending.Valid || guest.Attending.Bool {
+			return false
+		}
+	}
+	return true
 }

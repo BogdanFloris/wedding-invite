@@ -98,6 +98,18 @@ func UpdateGuestRSVP(id int64, attending bool, mealPreference, dietaryRestrictio
 	return err
 }
 
+// UpdateGuestName updates a guest's name
+func UpdateGuestName(id int64, invitationID, name string) error {
+	// Only allow updates for guests that belong to the given invitation
+	_, err := db.DB.Exec(`
+		UPDATE guests
+		SET name = ?
+		WHERE id = ? AND invitation_id = ?
+	`, name, id, invitationID)
+
+	return err
+}
+
 // DeleteGuest removes a guest from the database
 func DeleteGuest(id int64, invitationID string) error {
 	// Only allow deletion if the guest belongs to the given invitation

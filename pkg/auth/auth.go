@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	
 	"wedding-invite/pkg/db"
 	"wedding-invite/pkg/security"
 )
@@ -15,16 +14,16 @@ import (
 const (
 	// SessionCookieName is the name of the cookie used for auth
 	SessionCookieName = "wedding_session"
-	
+
 	// SessionDuration is how long a session lasts (30 days)
 	SessionDuration = 30 * 24 * time.Hour
 )
 
 // Errors
 var (
-	ErrInvalidCode        = errors.New("invalid invitation code")
-	ErrSessionExpired     = errors.New("session expired")
-	ErrInternalError      = errors.New("an internal error occurred")
+	ErrInvalidCode    = errors.New("invalid invitation code")
+	ErrSessionExpired = errors.New("session expired")
+	ErrInternalError  = errors.New("an internal error occurred")
 )
 
 // Session represents an authenticated session
@@ -50,12 +49,12 @@ type Invitation struct {
 func ValidateInvitationCode(code string, r *http.Request) (*Invitation, error) {
 	// Clean the code (remove spaces, case insensitive)
 	code = strings.TrimSpace(strings.ToLower(code))
-	
+
 	// Check if code meets minimum requirements
 	if len(code) < 8 {
 		return nil, ErrInvalidCode
 	}
-	
+
 	// Query the database for the invitation
 	var invitation Invitation
 	err := db.DB.QueryRow(`
@@ -71,7 +70,6 @@ func ValidateInvitationCode(code string, r *http.Request) (*Invitation, error) {
 		&invitation.CreatedAt,
 		&invitation.LastAccess,
 	)
-	
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrInvalidCode
@@ -79,19 +77,18 @@ func ValidateInvitationCode(code string, r *http.Request) (*Invitation, error) {
 		log.Printf("Database error validating invitation code: %v", err)
 		return nil, ErrInternalError
 	}
-	
+
 	// Update last access time
 	_, err = db.DB.Exec(`
 		UPDATE invitations
 		SET last_access = CURRENT_TIMESTAMP
 		WHERE id = ?
 	`, code)
-	
 	if err != nil {
 		log.Printf("Error updating last access time: %v", err)
 		// Non-fatal error, continue with authentication
 	}
-	
+
 	return &invitation, nil
 }
 
@@ -102,23 +99,22 @@ func CreateSession(invitation *Invitation, r *http.Request) (*Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Calculate expiry time
 	now := time.Now()
 	expiresAt := now.Add(SessionDuration)
-	
+
 	// Create session in database
 	ipHash := security.HashIPAddress(getIP(r))
 	_, err = db.DB.Exec(`
 		INSERT INTO sessions (id, invitation_id, created_at, expires_at, ip_address_hash)
 		VALUES (?, ?, ?, ?, ?)
 	`, sessionID, invitation.ID, now, expiresAt, ipHash)
-	
 	if err != nil {
 		log.Printf("Error creating session: %v", err)
 		return nil, ErrInternalError
 	}
-	
+
 	// Return the session
 	return &Session{
 		ID:           sessionID,
@@ -141,7 +137,6 @@ func GetSession(sessionID string) (*Session, error) {
 		&session.CreatedAt,
 		&session.ExpiresAt,
 	)
-	
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrSessionExpired
@@ -149,14 +144,14 @@ func GetSession(sessionID string) (*Session, error) {
 		log.Printf("Error retrieving session: %v", err)
 		return nil, ErrInternalError
 	}
-	
+
 	// Check if the session has expired
 	if time.Now().After(session.ExpiresAt) {
 		// Delete expired session
 		_, _ = db.DB.Exec("DELETE FROM sessions WHERE id = ?", sessionID)
 		return nil, ErrSessionExpired
 	}
-	
+
 	return &session, nil
 }
 
@@ -164,7 +159,7 @@ func GetSession(sessionID string) (*Session, error) {
 func SetSessionCookie(w http.ResponseWriter, session *Session) {
 	// Create a secure session token
 	token := security.CreateSessionToken(session.ID)
-	
+
 	// Set the cookie
 	cookie := &http.Cookie{
 		Name:     SessionCookieName,
@@ -175,7 +170,7 @@ func SetSessionCookie(w http.ResponseWriter, session *Session) {
 		Secure:   true, // Requires HTTPS
 		SameSite: http.SameSiteStrictMode,
 	}
-	
+
 	http.SetCookie(w, cookie)
 }
 
@@ -190,7 +185,7 @@ func ClearSessionCookie(w http.ResponseWriter) {
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	}
-	
+
 	http.SetCookie(w, cookie)
 }
 
@@ -201,13 +196,13 @@ func GetSessionFromRequest(r *http.Request) (*Session, error) {
 	if err != nil {
 		return nil, ErrSessionExpired
 	}
-	
+
 	// Verify token and extract session ID
 	sessionID, valid := security.VerifySessionToken(cookie.Value)
 	if !valid {
 		return nil, ErrSessionExpired
 	}
-	
+
 	// Get the session from the database
 	return GetSession(sessionID)
 }
@@ -221,7 +216,7 @@ func getIP(r *http.Request) string {
 		parts := strings.Split(forwarded, ",")
 		return strings.TrimSpace(parts[0])
 	}
-	
+
 	// Direct connection
 	return strings.Split(r.RemoteAddr, ":")[0]
 }

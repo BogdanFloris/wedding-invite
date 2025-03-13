@@ -74,7 +74,7 @@ func setupSchema() error {
 			ip_address_hash TEXT
 		);
 	`)
-	
+
 	return err
 }
 
