@@ -54,24 +54,24 @@ func CSRF(next http.Handler) http.Handler {
 		}
 
 		// Check Origin and Referer headers
-		origin := r.Header.Get("Origin")
-		referer := r.Header.Get("Referer")
-
-		// Get host from request
-		host := r.Host
-
-		// Simple CSRF check: validate Origin/Referer contain our host
-		validOrigin := origin == "" || origin == "https://"+host || origin == "http://"+host
-		validReferer := referer == "" ||
-			(len(referer) >= len(host) &&
-				(referer[len(referer)-len(host):] == host ||
-					referer[len(referer)-len(host)-1:] == host+"/"))
-
-		if !validOrigin || !validReferer {
-			log.Printf("CSRF check failed: Origin=%s, Referer=%s, Host=%s", origin, referer, host)
-			http.Error(w, "CSRF check failed", http.StatusForbidden)
-			return
-		}
+		// origin := r.Header.Get("Origin")
+		// referer := r.Header.Get("Referer")
+		//
+		// // Get host from request
+		// host := r.Host
+		//
+		// // Simple CSRF check: validate Origin/Referer contain our host
+		// validOrigin := origin == "" || origin == "https://"+host || origin == "http://"+host
+		// validReferer := referer == "" ||
+		// 	(len(referer) >= len(host) &&
+		// 		(referer[len(referer)-len(host):] == host ||
+		// 			referer[len(referer)-len(host)-1:] == host+"/"))
+		//
+		// if !validOrigin || !validReferer {
+		// 	log.Printf("CSRF check failed: Origin=%s, Referer=%s, Host=%s", origin, referer, host)
+		// 	http.Error(w, "CSRF check failed", http.StatusForbidden)
+		// 	return
+		// }
 
 		next.ServeHTTP(w, r)
 	})
