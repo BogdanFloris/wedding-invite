@@ -17,6 +17,10 @@ templ Base(title string) {
 				h1, h2, h3, h4, h5, h6 {
 					font-family: 'Cormorant Garamond', serif;
 				}
+				/* Button enhancement */
+				.bg-primary {
+					box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				}
 			</style>
 			<script>
 				tailwind.config = {
@@ -24,9 +28,9 @@ templ Base(title string) {
 						extend: {
 							colors: {
 								primary: {
-									light: '#f8e1e8',
-									DEFAULT: '#d4a1b3',
-									dark: '#a47288',
+									light: '#ffe5ec',
+									DEFAULT: '#e75a7c',
+									dark: '#d23f60',
 								},
 								secondary: {
 									light: '#e8f1fe',
@@ -34,7 +38,7 @@ templ Base(title string) {
 									dark: '#81a8f0',
 								},
 							},
-						},
+						}
 					}
 				}
 			</script>
