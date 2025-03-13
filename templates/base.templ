@@ -51,17 +51,15 @@ templ AuthBase(title string) {
 	@Base(title) {
 		<header class="mb-8">
 			<nav class="flex justify-between items-center">
-				<div class="text-3xl font-bold text-primary-dark">Our Wedding</div>
+				<a href="/wedding" class="text-3xl font-bold text-primary-dark hover:text-primary transition duration-300">Our Wedding</a>
 				<div>
 					<a href="/logout" class="text-sm text-gray-600 hover:text-primary-dark">Logout</a>
 				</div>
 			</nav>
 		</header>
-		
 		{ children... }
-		
 		<footer class="mt-16 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm">
-			<p>&copy; 2025 - Designed with love</p>
+			<p>&copy; 2025 - Copyright Bogdan & Ramona</p>
 		</footer>
 	}
 }

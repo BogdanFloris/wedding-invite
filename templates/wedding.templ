@@ -10,27 +10,32 @@ templ Wedding(invitationID string) {
 					@countdownTimer()
 				</div>
 			</div>
-			
 			<div class="border-t border-b border-gray-200 py-8 my-8 text-center">
 				<div class="text-xl font-semibold mb-2">October 4, 2025</div>
 				<div class="text-lg text-gray-600">at 6:00 PM</div>
 				<div class="mt-4 text-gray-600">
-					Palatul Ghica Tei<br/>
-					Str. Doamna Ghica 3-5<br/>
+					Palatul Ghica Tei
+					<br/>
+					Str. Doamna Ghica 3-5
+					<br/>
 					Bucharest, Romania
 				</div>
 			</div>
-			
-			<div class="text-center">
-				<a 
-					href="/rsvp" 
+			<div class="text-center space-y-2 sm:space-y-0 sm:space-x-3 flex flex-col sm:flex-row justify-center">
+				<a
+					href="/rsvp"
 					class="inline-block bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300"
 				>
 					RSVP Now
 				</a>
+				<a
+					href="/rsvp/status"
+					class="inline-block bg-white border border-primary text-primary hover:bg-primary-light font-medium py-3 px-8 rounded-md transition duration-300"
+				>
+					View RSVP Status
+				</a>
 			</div>
 		</div>
-		
 		<!-- Event Details -->
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
 			<div class="bg-white rounded-lg shadow-md p-6">
@@ -42,7 +47,6 @@ templ Wedding(invitationID string) {
 					</li>
 				</ul>
 			</div>
-			
 			<div class="bg-white rounded-lg shadow-md p-6">
 				<h2 class="text-2xl font-semibold mb-4 text-primary-dark">Reception</h2>
 				<p class="mb-4">Join us for dinner, dancing, and celebration following the ceremony.</p>
@@ -56,7 +60,6 @@ templ Wedding(invitationID string) {
 				</ul>
 			</div>
 		</div>
-		
 		<!-- Navigation Links -->
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
 			<a href="/travel" class="bg-secondary-light hover:bg-secondary p-5 rounded-lg text-center transition duration-300 shadow-sm">
@@ -90,7 +93,6 @@ templ countdownTimer() {
 			<div class="text-xs text-gray-600">Seconds</div>
 		</div>
 	</div>
-	
 	<script>
 		document.addEventListener('DOMContentLoaded', function() {
 			const weddingDate = new Date(2025, 9, 4, 19, 0, 0);

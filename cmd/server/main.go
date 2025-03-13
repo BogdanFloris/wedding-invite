@@ -10,7 +10,7 @@ import (
 	
 	"wedding-invite/pkg/db"
 	"wedding-invite/pkg/handlers"
-	// "wedding-invite/pkg/middleware"
+	"wedding-invite/pkg/middleware"
 	"wedding-invite/pkg/security"
 )
 
@@ -48,7 +48,7 @@ func main() {
 	mux := http.NewServeMux()
 	
 	// Apply CSRF protection to all routes
-	// handler := middleware.CSRF(mux)
+	handler := middleware.CSRF(mux)
 	
 	// Public routes
 	mux.Handle("/", handlers.Home())
@@ -57,6 +57,10 @@ func main() {
 	
 	// Protected routes
 	mux.Handle("/wedding", handlers.Wedding())
+	mux.Handle("/rsvp", handlers.HandleRSVP())
+	mux.Handle("/rsvp/status", handlers.HandleRSVPStatus())
+	mux.Handle("/rsvp/add-guest-fields", handlers.HandleAddGuestFields())
+	mux.Handle("/rsvp/guest/", handlers.HandleDeleteGuest())
 	
 	// Handle invitation code URL pattern (e.g., /abc123)
 	// This is a special case that's handled in the Home handler
@@ -65,7 +69,7 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	log.Printf("Server starting on :%s", port)
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
+	if err := http.ListenAndServe(":"+port, handler); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
 }
