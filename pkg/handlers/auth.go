@@ -3,7 +3,6 @@ package handlers
 import (
 	"log"
 	"net/http"
-	
 	"wedding-invite/pkg/auth"
 )
 
@@ -12,7 +11,7 @@ func HandleInviteCode() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Extract code from URL path
 		code := r.URL.Path[1:] // Remove leading slash
-		
+
 		// Validate the code
 		invitation, err := auth.ValidateInvitationCode(code, r)
 		if err != nil {
@@ -20,7 +19,7 @@ func HandleInviteCode() http.Handler {
 			http.Redirect(w, r, "/?error=invalid_code", http.StatusFound)
 			return
 		}
-		
+
 		// Create a session
 		session, err := auth.CreateSession(invitation, r)
 		if err != nil {
@@ -28,10 +27,10 @@ func HandleInviteCode() http.Handler {
 			http.Redirect(w, r, "/?error=system", http.StatusFound)
 			return
 		}
-		
+
 		// Set session cookie
 		auth.SetSessionCookie(w, session)
-		
+
 		// Redirect to wedding info page
 		http.Redirect(w, r, "/wedding", http.StatusFound)
 	})
@@ -45,16 +44,16 @@ func HandleLogin() http.Handler {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
-		
+
 		// Parse form
 		if err := r.ParseForm(); err != nil {
 			http.Error(w, "Invalid form data", http.StatusBadRequest)
 			return
 		}
-		
+
 		// Get the invitation code
 		code := r.Form.Get("code")
-		
+
 		// Validate the code
 		invitation, err := auth.ValidateInvitationCode(code, r)
 		if err != nil {
@@ -62,14 +61,12 @@ func HandleLogin() http.Handler {
 			switch err {
 			case auth.ErrInvalidCode:
 				http.Redirect(w, r, "/?error=invalid_code", http.StatusFound)
-			case auth.ErrRateLimitExceeded:
-				http.Redirect(w, r, "/?error=rate_limit", http.StatusFound)
 			default:
 				http.Redirect(w, r, "/?error=system", http.StatusFound)
 			}
 			return
 		}
-		
+
 		// Create a session
 		session, err := auth.CreateSession(invitation, r)
 		if err != nil {
@@ -77,10 +74,10 @@ func HandleLogin() http.Handler {
 			http.Redirect(w, r, "/?error=system", http.StatusFound)
 			return
 		}
-		
+
 		// Set session cookie
 		auth.SetSessionCookie(w, session)
-		
+
 		// Redirect to wedding info page
 		http.Redirect(w, r, "/wedding", http.StatusFound)
 	})
@@ -91,7 +88,7 @@ func HandleLogout() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Clear the session cookie
 		auth.ClearSessionCookie(w)
-		
+
 		// Redirect to home page
 		http.Redirect(w, r, "/", http.StatusFound)
 	})

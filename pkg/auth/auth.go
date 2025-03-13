@@ -18,19 +18,12 @@ const (
 	
 	// SessionDuration is how long a session lasts (30 days)
 	SessionDuration = 30 * 24 * time.Hour
-	
-	// RateLimitCount is the maximum number of code attempts per IP per minute
-	RateLimitCount = 5
-	
-	// RateLimitWindow is the time window for rate limiting (1 minute)
-	RateLimitWindow = time.Minute
 )
 
 // Errors
 var (
 	ErrInvalidCode        = errors.New("invalid invitation code")
 	ErrSessionExpired     = errors.New("session expired")
-	ErrRateLimitExceeded  = errors.New("rate limit exceeded, please try again later")
 	ErrInternalError      = errors.New("an internal error occurred")
 )
 
@@ -63,12 +56,6 @@ func ValidateInvitationCode(code string, r *http.Request) (*Invitation, error) {
 		return nil, ErrInvalidCode
 	}
 	
-	// Check rate limit
-	ipHash := security.HashIPAddress(getIP(r))
-	if isRateLimited(ipHash) {
-		return nil, ErrRateLimitExceeded
-	}
-	
 	// Query the database for the invitation
 	var invitation Invitation
 	err := db.DB.QueryRow(`
@@ -87,8 +74,6 @@ func ValidateInvitationCode(code string, r *http.Request) (*Invitation, error) {
 	
 	if err != nil {
 		if err == sql.ErrNoRows {
-			// Record failed attempt for rate limiting
-			recordFailedAttempt(ipHash)
 			return nil, ErrInvalidCode
 		}
 		log.Printf("Database error validating invitation code: %v", err)
@@ -239,45 +224,4 @@ func getIP(r *http.Request) string {
 	
 	// Direct connection
 	return strings.Split(r.RemoteAddr, ":")[0]
-}
-
-// Rate limiting helpers
-func isRateLimited(ipHash string) bool {
-	var count int
-	err := db.DB.QueryRow(`
-		SELECT COUNT(*) FROM (
-			SELECT 1 FROM sessions 
-			WHERE ip_address_hash = ? 
-			AND created_at > ?
-			LIMIT ?
-		)
-	`, ipHash, time.Now().Add(-RateLimitWindow), RateLimitCount+1).Scan(&count)
-	
-	if err != nil {
-		log.Printf("Error checking rate limit: %v", err)
-		return false // Don't block on errors
-	}
-	
-	return count > RateLimitCount
-}
-
-func recordFailedAttempt(ipHash string) {
-	// Record a failed attempt as a temporary session
-	sessionID, err := security.GenerateSessionID()
-	if err != nil {
-		log.Printf("Error generating session ID for rate limiting: %v", err)
-		return
-	}
-	
-	now := time.Now()
-	expiresAt := now.Add(RateLimitWindow)
-	
-	_, err = db.DB.Exec(`
-		INSERT INTO sessions (id, invitation_id, created_at, expires_at, ip_address_hash)
-		VALUES (?, 'failed_attempt', ?, ?, ?)
-	`, sessionID, now, expiresAt, ipHash)
-	
-	if err != nil {
-		log.Printf("Error recording failed attempt: %v", err)
-	}
 }

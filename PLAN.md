@@ -7,7 +7,6 @@
 - Implement invitation code database schema
 - Create URL pattern handler for direct links (`/{invite-code}`)
 - Add session management with secure HTTP-only cookies
-- Build rate limiting for code attempts (5 per IP per minute)
 - Implement logging for security monitoring
 
 ### Basic Site Structure

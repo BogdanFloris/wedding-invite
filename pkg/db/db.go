@@ -71,7 +71,7 @@ func setupSchema() error {
 			invitation_id TEXT REFERENCES invitations(id),
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			expires_at TIMESTAMP,
-			ip_address_hash TEXT -- Storing hashed IP for rate limiting while preserving privacy
+			ip_address_hash TEXT
 		);
 	`)
 	

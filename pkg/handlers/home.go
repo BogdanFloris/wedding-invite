@@ -30,8 +30,6 @@ func Home() http.Handler {
 			switch errType {
 			case "invalid_code":
 				errorMsg = "Invalid invitation code. Please check and try again."
-			case "rate_limit":
-				errorMsg = "Too many attempts. Please try again later."
 			case "auth_required":
 				errorMsg = "Please enter your invitation code to continue."
 			case "system":
