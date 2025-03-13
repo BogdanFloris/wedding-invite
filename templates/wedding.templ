@@ -1,6 +1,6 @@
 package templates
 
-templ Wedding(invitationID string) {
+templ Wedding(invitationID string, hasRSVP bool) {
 	@AuthBase("Our Wedding") {
 		<div class="bg-white rounded-lg shadow-md p-8 mb-8">
 			<div class="text-center mb-8">
@@ -21,19 +21,22 @@ templ Wedding(invitationID string) {
 					Bucharest, Romania
 				</div>
 			</div>
-			<div class="text-center space-y-2 sm:space-y-0 sm:space-x-3 flex flex-col sm:flex-row justify-center">
-				<a
-					href="/rsvp"
-					class="inline-block bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300"
-				>
-					RSVP Now
-				</a>
-				<a
-					href="/rsvp/status"
-					class="inline-block bg-white border border-primary text-primary hover:bg-primary-light font-medium py-3 px-8 rounded-md transition duration-300"
-				>
-					View RSVP Status
-				</a>
+			<div class="text-center">
+				if hasRSVP {
+					<a
+						href="/rsvp/status"
+						class="inline-block bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300"
+					>
+						View RSVP Status
+					</a>
+				} else {
+					<a
+						href="/rsvp"
+						class="inline-block bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300"
+					>
+						RSVP Now
+					</a>
+				}
 			</div>
 		</div>
 		<!-- Event Details -->

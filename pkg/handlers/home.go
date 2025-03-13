@@ -5,6 +5,7 @@ import (
 	"strings"
 	"wedding-invite/pkg/auth"
 	"wedding-invite/pkg/middleware"
+	"wedding-invite/pkg/models"
 	"wedding-invite/templates"
 )
 
@@ -60,7 +61,17 @@ func Wedding() http.Handler {
 			return
 		}
 
+		// Check if the user has any RSVPs
+		invitationID := session.InvitationID
+		guestCount, err := models.GetGuestCount(invitationID)
+		if err != nil {
+			// If there's an error, assume no guests to be safe
+			guestCount = 0
+		}
+
+		hasRSVP := guestCount > 0
+
 		// Render wedding info page
-		templates.Wedding(session.InvitationID).Render(r.Context(), w)
+		templates.Wedding(invitationID, hasRSVP).Render(r.Context(), w)
 	}))
 }
