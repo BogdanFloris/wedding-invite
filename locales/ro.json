@@ -1,0 +1,118 @@
+{
+  "header": {
+    "title": "R & B",
+    "logout": "Deconectare"
+  },
+  "login": {
+    "title": "R & B",
+    "subtitle": "Ne căsătorim!",
+    "form_title": "Introduceți codul de invitație",
+    "code_label": "Cod invitație",
+    "code_placeholder": "Introduceți codul aici",
+    "code_help": "Se găsește pe invitația dvs. sau în mesajul pe care vi l-am trimis.",
+    "submit": "Accesați detaliile nunții",
+    "lost_code": "Ați pierdut codul de invitație? Contactați-ne direct.",
+    "errors": {
+      "invalid_code": "Cod de invitație invalid. Vă rugăm să verificați și să încercați din nou.",
+      "auth_required": "Vă rugăm să introduceți codul de invitație pentru a continua.",
+      "system": "Eroare de sistem. Vă rugăm să încercați mai târziu."
+    }
+  },
+  "wedding": {
+    "title": "Ramona & Bogdan",
+    "subtitle": "Ne căsătorim!",
+    "date": "4 octombrie 2025",
+    "time": "la ora 18:00",
+    "location": {
+      "venue": "Palatul Ghica Tei",
+      "address1": "Str. Doamna Ghica 3-5",
+      "address2": "București, România"
+    },
+    "countdown": {
+      "days": "Zile",
+      "hours": "Ore",
+      "minutes": "Minute",
+      "seconds": "Secunde"
+    },
+    "buttons": {
+      "rsvp": "Confirmă Participarea",
+      "rsvp_status": "Vezi Confirmarea"
+    }
+  },
+  "ceremony": {
+    "title": "Ceremonia",
+    "description": "Ceremonia va avea loc la Biserica Icoanei.",
+    "time": "14:00 - 15:00"
+  },
+  "reception": {
+    "title": "Recepția",
+    "description": "Alăturați-vă nouă pentru cină, dans și sărbătoare după ceremonie.",
+    "time": "18:00 - Dimineața",
+    "dinner": "Cină & Dans"
+  },
+  "navigation": {
+    "travel": {
+      "title": "Călătorie & Cazare",
+      "description": "Unde să stați și cum să ajungeți"
+    },
+    "faq": {
+      "title": "Întrebări Frecvente",
+      "description": "Întrebări & Răspunsuri"
+    }
+  },
+  "rsvp": {
+    "title": "Confirmă Participarea",
+    "subtitle": "Vă rugăm să confirmați prezența pentru",
+    "deadline": "Vă rugăm să răspundeți până la 1 septembrie 2025",
+    "success": "Mulțumim!",
+    "success_message": "Confirmarea pentru {0} a fost înregistrată cu succes.",
+    "status": {
+      "title": "Statusul Confirmării",
+      "subtitle": "Status confirmare curent pentru",
+      "no_guests": "Nu ați adăugat încă niciun invitat.",
+      "start_rsvp": "Începeți confirmarea",
+      "your_guests": "Invitații dvs.",
+      "details": "Detalii",
+      "edit_rsvp": "Editați confirmarea",
+      "attending": "Participă",
+      "not_attending": "Nu participă"
+    },
+    "form": {
+      "initialText": "Vă rugăm să introduceți numele dumneavoastră și ale oaspeților suplimentari în formularul de mai jos.",
+      "guests": "Invitați",
+      "add_guest": "Adaugă Invitat",
+      "guest_placeholder": "Numele invitatului",
+      "meal_preference": "Preferință pentru masă",
+      "meal_options": {
+        "standard": "Standard",
+        "vegetarian": "Vegetarian",
+        "vegan": "Vegan",
+        "ovo_lacto_vegetarian": "Ovo-Lacto Vegetarian",
+        "ovo_lacto_fish": "Ovo-Lacto cu Pește",
+        "muslim": "Musulman",
+        "gluten_free": "Fără Gluten",
+        "lactose_free": "Fără Lactoză",
+        "child": "Copil",
+        "none": "Nicio preferință"
+      },
+      "dietary_notes": "Note dietetice adiționale",
+      "dietary_notes_placeholder": "Orice alergii sau preferințe speciale",
+      "submit": "Trimite Confirmarea",
+      "cancel": "Anulează",
+      "add": "Adaugă",
+      "remove": "Șterge",
+      "attending": "Participă",
+      "not_attending": "Nu poate participa",
+      "max_guests": "Număr maxim de invitați: {0}",
+      "footer": "Dacă aveți nevoie să modificați răspunsul la invitație după ce l-ați trimis, puteți reveni pe această pagină oricând."
+    }
+  },
+  "footer": {
+    "copyright": "© 2025 - Copyright Bogdan & Ramona"
+  },
+  "language": {
+    "ro": "RO",
+    "en": "EN"
+  }
+}
+

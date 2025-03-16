@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-
 	"wedding-invite/pkg/db"
 	"wedding-invite/pkg/handlers"
+	"wedding-invite/pkg/i18n"
 	"wedding-invite/pkg/middleware"
 	"wedding-invite/pkg/security"
 
@@ -39,6 +39,11 @@ func main() {
 		log.Fatalf("Failed to initialize security: %v", err)
 	}
 
+	// Initialize internationalization
+	if err := i18n.Initialize(); err != nil {
+		log.Fatalf("Failed to initialize language translations: %v", err)
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -47,8 +52,8 @@ func main() {
 	// Create a mux for routing
 	mux := http.NewServeMux()
 
-	// Apply CSRF protection to all routes
-	handler := middleware.CSRF(mux)
+	// Apply CSRF protection and language middleware to all routes
+	handler := middleware.CSRF(middleware.Language(mux))
 
 	// Public routes
 	mux.Handle("/", handlers.Home())

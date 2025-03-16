@@ -1,8 +1,14 @@
 package templates
 
-templ Base(title string) {
+import (
+	"wedding-invite/pkg/i18n"
+	"wedding-invite/pkg/middleware"
+	"net/http"
+)
+
+templ Base(title string, r *http.Request) {
 	<!DOCTYPE html>
-	<html lang="en">
+	<html lang={middleware.GetLanguage(r)}>
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -39,7 +45,7 @@ templ Base(title string) {
 									DEFAULT: '#b9d7fd',
 									dark: '#81a8f0',
 								},
-							},
+							}
 						}
 					}
 				}
@@ -53,19 +59,44 @@ templ Base(title string) {
 	</html>
 }
 
-templ AuthBase(title string) {
-	@Base(title) {
+templ AuthBase(title string, r *http.Request) {
+	@Base(title, r) {
 		<header class="mb-8">
 			<nav class="flex justify-between items-center">
-				<a href="/wedding" class="text-3xl font-bold text-primary-dark hover:text-primary transition duration-300">Our Wedding</a>
-				<div>
-					<a href="/logout" class="text-sm text-gray-600 hover:text-primary-dark">Logout</a>
+				<a href="/wedding" class="text-3xl font-bold text-primary-dark hover:text-primary transition duration-300">
+					{ i18n.T(middleware.GetLanguage(r), "header.title") }
+				</a>
+				<div class="flex items-center space-x-6">
+					<div class="flex items-center space-x-2">
+						if middleware.GetLanguage(r) == "ro" {
+							<a href="?lang=ro" class="text-sm font-bold text-primary-dark">
+								{ i18n.T(middleware.GetLanguage(r), "language.ro") }
+							</a>
+						} else {
+							<a href="?lang=ro" class="text-sm text-gray-600 hover:text-primary-dark">
+								{ i18n.T(middleware.GetLanguage(r), "language.ro") }
+							</a>
+						}
+						<span class="text-gray-300">|</span>
+						if middleware.GetLanguage(r) == "en" {
+							<a href="?lang=en" class="text-sm font-bold text-primary-dark">
+								{ i18n.T(middleware.GetLanguage(r), "language.en") }
+							</a>
+						} else {
+							<a href="?lang=en" class="text-sm text-gray-600 hover:text-primary-dark">
+								{ i18n.T(middleware.GetLanguage(r), "language.en") }
+							</a>
+						}
+					</div>
+					<a href="/logout" class="text-sm text-gray-600 hover:text-primary-dark">
+						{ i18n.T(middleware.GetLanguage(r), "header.logout") }
+					</a>
 				</div>
 			</nav>
 		</header>
 		{ children... }
 		<footer class="mt-16 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm">
-			<p>&copy; 2025 - Copyright Bogdan & Ramona</p>
+			<p>{ i18n.T(middleware.GetLanguage(r), "footer.copyright") }</p>
 		</footer>
 	}
 }

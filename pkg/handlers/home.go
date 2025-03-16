@@ -46,7 +46,7 @@ func Home() http.Handler {
 		}
 
 		// Render login page
-		templates.Login(errorMsg).Render(r.Context(), w)
+		templates.Login(errorMsg, r).Render(r.Context(), w)
 	})
 }
 
@@ -72,6 +72,6 @@ func Wedding() http.Handler {
 		hasRSVP := guestCount > 0
 
 		// Render wedding info page
-		templates.Wedding(invitationID, hasRSVP).Render(r.Context(), w)
+		templates.Wedding(invitationID, hasRSVP, r).Render(r.Context(), w)
 	}))
 }

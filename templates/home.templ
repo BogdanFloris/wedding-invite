@@ -1,5 +1,9 @@
 package templates
 
-templ Home() {
-	@Login("")
+import (
+	"net/http"
+)
+
+templ Home(r *http.Request) {
+	@Login("", r)
 }

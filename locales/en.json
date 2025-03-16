@@ -1,0 +1,117 @@
+{
+  "header": {
+    "title": "R & B",
+    "logout": "Logout"
+  },
+  "login": {
+    "title": "R & B",
+    "subtitle": "We're getting married!",
+    "form_title": "Enter Your Invitation Code",
+    "code_label": "Invitation Code",
+    "code_placeholder": "Enter your code here",
+    "code_help": "Found on your invitation or in the message we sent you.",
+    "submit": "Access Wedding Details",
+    "lost_code": "Lost your invitation code? Contact us directly.",
+    "errors": {
+      "invalid_code": "Invalid invitation code. Please check and try again.",
+      "auth_required": "Please enter your invitation code to continue.",
+      "system": "System error. Please try again later."
+    }
+  },
+  "wedding": {
+    "title": "Ramona & Bogdan",
+    "subtitle": "We're getting married!",
+    "date": "October 4, 2025",
+    "time": "at 6:00 PM",
+    "location": {
+      "venue": "Palatul Ghica Tei",
+      "address1": "Str. Doamna Ghica 3-5",
+      "address2": "Bucharest, Romania"
+    },
+    "countdown": {
+      "days": "Days",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "seconds": "Seconds"
+    },
+    "buttons": {
+      "rsvp": "RSVP Now",
+      "rsvp_status": "View RSVP Status"
+    }
+  },
+  "ceremony": {
+    "title": "Ceremony",
+    "description": "The ceremony will be held at Church Biserica Icoanei.",
+    "time": "2:00 PM - 3:00 PM"
+  },
+  "reception": {
+    "title": "Reception",
+    "description": "Join us for dinner, dancing, and celebration following the ceremony.",
+    "time": "6:00 PM - Morning",
+    "dinner": "Dinner & Dancing"
+  },
+  "navigation": {
+    "travel": {
+      "title": "Travel & Accommodations",
+      "description": "Where to stay and how to get here"
+    },
+    "faq": {
+      "title": "FAQ",
+      "description": "Questions & Answers"
+    }
+  },
+  "rsvp": {
+    "title": "RSVP",
+    "subtitle": "Please confirm your attendance for",
+    "deadline": "Kindly respond by September 1, 2025",
+    "success": "Thank You!",
+    "success_message": "Your RSVP for {0} has been successfully recorded.",
+    "status": {
+      "title": "RSVP Status",
+      "subtitle": "Current RSVP status for",
+      "no_guests": "You haven't added any guests yet.",
+      "start_rsvp": "Start RSVP",
+      "your_guests": "Your Guests",
+      "details": "Details",
+      "edit_rsvp": "Edit RSVP",
+      "attending": "Attending",
+      "not_attending": "Not Attending"
+    },
+    "form": {
+      "initialText": "Please add yourself and any additional guests below.",
+      "guests": "Guests",
+      "add_guest": "Add Guest",
+      "guest_placeholder": "Guest name",
+      "meal_preference": "Meal preference",
+      "meal_options": {
+        "standard": "Standard",
+        "vegetarian": "Vegetarian",
+        "vegan": "Vegan",
+        "ovo_lacto_vegetarian": "Ovo-Lacto Vegetarian",
+        "ovo_lacto_fish": "Ovo-Lacto with Fish",
+        "muslim": "Muslim",
+        "gluten_free": "Gluten Free",
+        "lactose_free": "Lactose Free",
+        "child": "Child",
+        "none": "No preference"
+      },
+      "dietary_notes": "Additional dietary notes",
+      "dietary_notes_placeholder": "Any allergies or special requirements",
+      "submit": "Submit RSVP",
+      "cancel": "Cancel",
+      "add": "Add",
+      "remove": "Remove",
+      "attending": "Attending",
+      "not_attending": "Cannot attend",
+      "max_guests": "Maximum number of guests: {0}",
+      "footer": "If you need to make changes to your RSVP after submitting, you can return to this page anytime."
+    }
+  },
+  "footer": {
+    "copyright": "© 2025 - Copyright Bogdan & Ramona"
+  },
+  "language": {
+    "ro": "RO",
+    "en": "EN"
+  }
+}

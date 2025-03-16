@@ -1,7 +1,13 @@
 package templates
 
-templ Wedding(invitationID string, hasRSVP bool) {
-	@AuthBase("Our Wedding") {
+import (
+	"wedding-invite/pkg/i18n"
+	"wedding-invite/pkg/middleware"
+	"net/http"
+)
+
+templ Wedding(invitationID string, hasRSVP bool, r *http.Request) {
+	@AuthBase("Our Wedding", r) {
 		<div class="bg-white rounded-lg shadow-md p-8 mb-8">
 			<div class="text-center mb-8">
 				<div class="mx-auto w-48 h-48 rounded-full overflow-hidden mb-6 border-4 border-primary-light shadow-md relative">
@@ -13,21 +19,21 @@ templ Wedding(invitationID string, hasRSVP bool) {
 						style="object-position: 50% 40%;"
 					/>
 				</div>
-				<h1 class="text-4xl font-bold text-primary-dark mb-3">Ramona & Bogdan</h1>
-				<p class="text-lg text-gray-600">We're getting married!</p>
+				<h1 class="text-4xl font-bold text-primary-dark mb-3">{ i18n.T(middleware.GetLanguage(r), "wedding.title") }</h1>
+				<p class="text-lg text-gray-600">{ i18n.T(middleware.GetLanguage(r), "wedding.subtitle") }</p>
 				<div class="mt-6">
-					@countdownTimer()
+					@countdownTimer(r)
 				</div>
 			</div>
 			<div class="border-t border-b border-gray-200 py-8 my-8 text-center">
-				<div class="text-xl font-semibold mb-2">October 4, 2025</div>
-				<div class="text-lg text-gray-600">at 6:00 PM</div>
+				<div class="text-xl font-semibold mb-2">{ i18n.T(middleware.GetLanguage(r), "wedding.date") }</div>
+				<div class="text-lg text-gray-600">{ i18n.T(middleware.GetLanguage(r), "wedding.time") }</div>
 				<div class="mt-4 text-gray-600">
-					Palatul Ghica Tei
+					{ i18n.T(middleware.GetLanguage(r), "wedding.location.venue") }
 					<br/>
-					Str. Doamna Ghica 3-5
+					{ i18n.T(middleware.GetLanguage(r), "wedding.location.address1") }
 					<br/>
-					Bucharest, Romania
+					{ i18n.T(middleware.GetLanguage(r), "wedding.location.address2") }
 				</div>
 			</div>
 			<div class="text-center">
@@ -36,14 +42,14 @@ templ Wedding(invitationID string, hasRSVP bool) {
 						href="/rsvp/status"
 						class="inline-block bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300"
 					>
-						View RSVP Status
+						{ i18n.T(middleware.GetLanguage(r), "wedding.buttons.rsvp_status") }
 					</a>
 				} else {
 					<a
 						href="/rsvp"
 						class="inline-block bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300"
 					>
-						RSVP Now
+						{ i18n.T(middleware.GetLanguage(r), "wedding.buttons.rsvp") }
 					</a>
 				}
 			</div>
@@ -51,23 +57,23 @@ templ Wedding(invitationID string, hasRSVP bool) {
 		<!-- Event Details -->
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
 			<div class="bg-white rounded-lg shadow-md p-6">
-				<h2 class="text-2xl font-semibold mb-4 text-primary-dark">Ceremony</h2>
-				<p class="mb-4">The ceremony will be held at Church Biserica Icoanei.</p>
+				<h2 class="text-2xl font-semibold mb-4 text-primary-dark">{ i18n.T(middleware.GetLanguage(r), "ceremony.title") }</h2>
+				<p class="mb-4">{ i18n.T(middleware.GetLanguage(r), "ceremony.description") }</p>
 				<ul class="space-y-2 text-gray-600">
 					<li class="flex items-center">
-						<span class="mr-2">🕓</span> 2:00 PM - 3:00 PM
+						<span class="mr-2">🕓</span> { i18n.T(middleware.GetLanguage(r), "ceremony.time") }
 					</li>
 				</ul>
 			</div>
 			<div class="bg-white rounded-lg shadow-md p-6">
-				<h2 class="text-2xl font-semibold mb-4 text-primary-dark">Reception</h2>
-				<p class="mb-4">Join us for dinner, dancing, and celebration following the ceremony.</p>
+				<h2 class="text-2xl font-semibold mb-4 text-primary-dark">{ i18n.T(middleware.GetLanguage(r), "reception.title") }</h2>
+				<p class="mb-4">{ i18n.T(middleware.GetLanguage(r), "reception.description") }</p>
 				<ul class="space-y-2 text-gray-600">
 					<li class="flex items-center">
-						<span class="mr-2">🕓</span> 6:00 PM - Morning
+						<span class="mr-2">🕓</span> { i18n.T(middleware.GetLanguage(r), "reception.time") }
 					</li>
 					<li class="flex items-center">
-						<span class="mr-2">🍽️</span> Dinner & Dancing
+						<span class="mr-2">🍽️</span> { i18n.T(middleware.GetLanguage(r), "reception.dinner") }
 					</li>
 				</ul>
 			</div>
@@ -75,34 +81,34 @@ templ Wedding(invitationID string, hasRSVP bool) {
 		<!-- Navigation Links -->
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
 			<a href="/travel" class="bg-secondary-light hover:bg-secondary p-5 rounded-lg text-center transition duration-300 shadow-sm">
-				<h3 class="font-semibold text-lg mb-2">Travel & Accommodations</h3>
-				<p class="text-sm text-gray-600">Where to stay and how to get here</p>
+				<h3 class="font-semibold text-lg mb-2">{ i18n.T(middleware.GetLanguage(r), "navigation.travel.title") }</h3>
+				<p class="text-sm text-gray-600">{ i18n.T(middleware.GetLanguage(r), "navigation.travel.description") }</p>
 			</a>
 			<a href="/faq" class="bg-secondary-light hover:bg-secondary p-5 rounded-lg text-center transition duration-300 shadow-sm">
-				<h3 class="font-semibold text-lg mb-2">FAQ</h3>
-				<p class="text-sm text-gray-600">Questions & Answers</p>
+				<h3 class="font-semibold text-lg mb-2">{ i18n.T(middleware.GetLanguage(r), "navigation.faq.title") }</h3>
+				<p class="text-sm text-gray-600">{ i18n.T(middleware.GetLanguage(r), "navigation.faq.description") }</p>
 			</a>
 		</div>
 	}
 }
 
-templ countdownTimer() {
+templ countdownTimer(r *http.Request) {
 	<div class="grid grid-cols-4 gap-4 max-w-md mx-auto">
 		<div class="bg-primary-light rounded-lg p-3 text-center">
 			<div class="text-3xl font-bold text-primary-dark" id="countdown-days">--</div>
-			<div class="text-xs text-gray-600">Days</div>
+			<div class="text-xs text-gray-600">{ i18n.T(middleware.GetLanguage(r), "wedding.countdown.days") }</div>
 		</div>
 		<div class="bg-primary-light rounded-lg p-3 text-center">
 			<div class="text-3xl font-bold text-primary-dark" id="countdown-hours">--</div>
-			<div class="text-xs text-gray-600">Hours</div>
+			<div class="text-xs text-gray-600">{ i18n.T(middleware.GetLanguage(r), "wedding.countdown.hours") }</div>
 		</div>
 		<div class="bg-primary-light rounded-lg p-3 text-center">
 			<div class="text-3xl font-bold text-primary-dark" id="countdown-minutes">--</div>
-			<div class="text-xs text-gray-600">Minutes</div>
+			<div class="text-xs text-gray-600">{ i18n.T(middleware.GetLanguage(r), "wedding.countdown.minutes") }</div>
 		</div>
 		<div class="bg-primary-light rounded-lg p-3 text-center">
 			<div class="text-3xl font-bold text-primary-dark" id="countdown-seconds">--</div>
-			<div class="text-xs text-gray-600">Seconds</div>
+			<div class="text-xs text-gray-600">{ i18n.T(middleware.GetLanguage(r), "wedding.countdown.seconds") }</div>
 		</div>
 	</div>
 	<script>

@@ -13,7 +13,12 @@ import (
 )
 
 // renderRSVPForm is a helper function to render the RSVP form with the latest data
-func renderRSVPForm(w http.ResponseWriter, r *http.Request, invitationID string, successMsg string) {
+func renderRSVPForm(
+	w http.ResponseWriter,
+	r *http.Request,
+	invitationID string,
+	successMsg string,
+) {
 	// Get guest data
 	guests, err := models.GetGuestsByInvitation(invitationID)
 	if err != nil {
@@ -45,7 +50,7 @@ func renderRSVPForm(w http.ResponseWriter, r *http.Request, invitationID string,
 	}
 
 	// Render RSVP form
-	templates.RSVPForm(familyName, invitationID, guests, canAddMore, maxGuests, models.MealOptions, successMsg).
+	templates.RSVPForm(familyName, invitationID, guests, canAddMore, maxGuests, models.MealOptions, successMsg, r).
 		Render(r.Context(), w)
 }
 
@@ -133,7 +138,7 @@ func HandleDeleteGuest() http.Handler {
 		}
 
 		invitationID := session.InvitationID
-		
+
 		// Extract guest ID from URL
 		// Expected format: /rsvp/guest/123
 		pathParts := strings.Split(r.URL.Path, "/")
@@ -141,7 +146,7 @@ func HandleDeleteGuest() http.Handler {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
 			return
 		}
-		
+
 		guestIDStr := pathParts[len(pathParts)-1]
 		guestID, err := strconv.ParseInt(guestIDStr, 10, 64)
 		if err != nil {
@@ -152,7 +157,7 @@ func HandleDeleteGuest() http.Handler {
 		// For standard GET requests (direct clicks on links)
 		// For DELETE requests (from HTMX)
 		// Both should be handled the same way
-		
+
 		// Delete the guest
 		err = models.DeleteGuest(guestID, invitationID)
 		if err != nil {
@@ -160,7 +165,7 @@ func HandleDeleteGuest() http.Handler {
 			http.Error(w, "Failed to delete guest", http.StatusInternalServerError)
 			return
 		}
-		
+
 		// Redirect to the RSVP page with a specific GET parameter to force reload
 		// Adding a timestamp to bust any cache
 		timestamp := time.Now().Unix()
@@ -220,7 +225,12 @@ func HandleSubmitRSVP() http.Handler {
 			}
 
 			// Update guest RSVP status
-			err = models.UpdateGuestRSVP(guestID, partyAttending, mealPreference, dietaryRestrictions)
+			err = models.UpdateGuestRSVP(
+				guestID,
+				partyAttending,
+				mealPreference,
+				dietaryRestrictions,
+			)
 			if err != nil {
 				log.Printf("Error updating RSVP for guest %d: %v", guestID, err)
 			}
@@ -234,7 +244,7 @@ func HandleSubmitRSVP() http.Handler {
 		}
 
 		// Return success message
-		templates.SuccessMessage(familyName).Render(r.Context(), w)
+		templates.SuccessMessage(familyName, r).Render(r.Context(), w)
 	}))
 }
 
@@ -267,6 +277,6 @@ func HandleRSVPStatus() http.Handler {
 		}
 
 		// Render RSVP status page
-		templates.RSVPStatus(familyName, guests).Render(r.Context(), w)
+		templates.RSVPStatus(familyName, guests, r).Render(r.Context(), w)
 	}))
 }
