@@ -78,6 +78,7 @@
       "not_attending": "Not Attending"
     },
     "form": {
+      "question": "Will your party be attending?",
       "initialText": "Please add yourself and any additional guests below.",
       "guests": "Guests",
       "add_guest": "Add Guest",

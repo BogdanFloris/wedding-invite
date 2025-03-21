@@ -79,6 +79,7 @@
     },
     "form": {
       "initialText": "Vă rugăm să introduceți numele dumneavoastră și ale oaspeților suplimentari în formularul de mai jos.",
+      "question": "Va participa grupul dumneavoastră?",
       "guests": "Invitați",
       "add_guest": "Adaugă Invitat",
       "guest_placeholder": "Numele invitatului",
