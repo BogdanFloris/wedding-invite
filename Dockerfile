@@ -35,6 +35,7 @@ COPY --from=builder /app/admin-tool .
 
 # Copy static and template files
 COPY --from=builder /app/static ./static
+COPY --from=builder /app/locales ./locales
 
 # Copy and set permissions for admin script
 COPY admin.sh .
