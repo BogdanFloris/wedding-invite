@@ -1,9 +1,9 @@
 package templates
 
 import (
-	"net/http"
 	"wedding-invite/pkg/i18n"
 	"wedding-invite/pkg/middleware"
+	"net/http"
 )
 
 templ Wedding(invitationID string, hasRSVP bool, r *http.Request) {
@@ -27,16 +27,16 @@ templ Wedding(invitationID string, hasRSVP bool, r *http.Request) {
 					@countdownTimer(r)
 				</div>
 			</div>
-			<div class="mb-8 text-center">
+            <div class="mb-8 text-center">
 				<div class="text-3xl font-bold text-primary-dark mb-8 py-3 px-6 inline-block transform hover:scale-105 transition-transform duration-300">
 					{ i18n.T(middleware.GetLanguage(r), "wedding.date") }
 				</div>
 				<div class="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto mb-6">
 					<div class="relative w-[30%] min-w-[150px] h-40 -rotate-3 transform hover:rotate-0 transition-transform duration-300 shadow-md z-10">
 						<div class="absolute inset-0 bg-primary-light/20 rounded-lg overflow-hidden">
-							<img
+							<img 
 								src="/static/images/optimized/Couple_Sess_Ramona_Bogdan-84.jpg"
-								alt="Ramona and Bogdan"
+								alt="Ramona and Bogdan" 
 								class="w-full h-full object-cover rounded-lg"
 								loading="lazy"
 								width="800"
@@ -46,9 +46,9 @@ templ Wedding(invitationID string, hasRSVP bool, r *http.Request) {
 					</div>
 					<div class="relative w-[30%] min-w-[150px] h-40 rotate-2 transform hover:rotate-0 transition-transform duration-300 shadow-md z-10">
 						<div class="absolute inset-0 bg-primary-light/20 rounded-lg overflow-hidden">
-							<img
+							<img 
 								src="/static/images/optimized/Couple_Sess_Ramona_Bogdan-206.jpg"
-								alt="Ramona and Bogdan"
+								alt="Ramona and Bogdan" 
 								class="w-full h-full object-cover rounded-lg"
 								loading="lazy"
 								width="800"
@@ -58,9 +58,9 @@ templ Wedding(invitationID string, hasRSVP bool, r *http.Request) {
 					</div>
 					<div class="relative w-[30%] min-w-[150px] h-40 -rotate-2 transform hover:rotate-0 transition-transform duration-300 shadow-md z-10">
 						<div class="absolute inset-0 bg-primary-light/20 rounded-lg overflow-hidden">
-							<img
+							<img 
 								src="/static/images/optimized/Couples_Ramona_Bogdan_001.jpg"
-								alt="Ramona and Bogdan"
+								alt="Ramona and Bogdan" 
 								class="w-full h-full object-cover rounded-lg"
 								loading="lazy"
 								width="800"
@@ -97,6 +97,9 @@ templ Wedding(invitationID string, hasRSVP bool, r *http.Request) {
 					<li class="flex items-center">
 						<span class="mr-2">🕓</span> { i18n.T(middleware.GetLanguage(r), "ceremony.time") }
 					</li>
+					<li class="flex items-center">
+						<span class="mr-2">📍</span> <a href="https://maps.google.com/?q=Biserica+Icoanei+Bucuresti" target="_blank" class="text-primary hover:text-primary-dark transition duration-300 underline">Biserica Icoanei</a>
+					</li>
 				</ul>
 			</div>
 			<div class="bg-white rounded-lg shadow-md p-6">
@@ -107,21 +110,10 @@ templ Wedding(invitationID string, hasRSVP bool, r *http.Request) {
 						<span class="mr-2">🕓</span> { i18n.T(middleware.GetLanguage(r), "reception.time") }
 					</li>
 					<li class="flex items-center">
-						<span class="mr-2">🍽️</span> { i18n.T(middleware.GetLanguage(r), "reception.dinner") }
+						<span class="mr-2">📍</span> <a href="https://maps.google.com/?q=Palatul+Ghica+Tei" target="_blank" class="text-primary hover:text-primary-dark transition duration-300 underline">Palatul Ghica Tei</a>
 					</li>
 				</ul>
 			</div>
-		</div>
-		<!-- Navigation Links -->
-		<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
-			<a href="/travel" class="bg-secondary-light hover:bg-secondary p-5 rounded-lg text-center transition duration-300 shadow-sm">
-				<h3 class="font-semibold text-lg mb-2">{ i18n.T(middleware.GetLanguage(r), "navigation.travel.title") }</h3>
-				<p class="text-sm text-gray-600">{ i18n.T(middleware.GetLanguage(r), "navigation.travel.description") }</p>
-			</a>
-			<a href="/faq" class="bg-secondary-light hover:bg-secondary p-5 rounded-lg text-center transition duration-300 shadow-sm">
-				<h3 class="font-semibold text-lg mb-2">{ i18n.T(middleware.GetLanguage(r), "navigation.faq.title") }</h3>
-				<p class="text-sm text-gray-600">{ i18n.T(middleware.GetLanguage(r), "navigation.faq.description") }</p>
-			</a>
 		</div>
 	}
 }
