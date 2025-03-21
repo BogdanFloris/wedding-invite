@@ -20,7 +20,7 @@
   },
   "wedding": {
     "title": "Ramona & Bogdan",
-    "subtitle": "Ne căsătorim!",
+    "subtitle": "Alăturați-vă nouă în ziua noastră specială!",
     "date": "4 octombrie 2025",
     "time": "la ora 18:00",
     "location": {
@@ -40,13 +40,13 @@
     }
   },
   "ceremony": {
-    "title": "Ceremonia",
-    "description": "Ceremonia va avea loc la Biserica Icoanei.",
+    "title": "Cununia Religioasa",
+    "description": "Cununia religioasa va avea loc la Biserica Icoanei, Str. Icoanei nr. 12, sector 2, Bucureşti, Romania",
     "time": "14:00 - 15:00"
   },
   "reception": {
-    "title": "Recepția",
-    "description": "Alăturați-vă nouă pentru cină, dans și sărbătoare după ceremonie.",
+    "title": "Petrecere",
+    "description": "Alăturați-vă nouă pentru cină, dans și sărbătoare la Palatul Ghica Tei, Str. Doamna Ghica 3-5, București, România",
     "time": "18:00 - Dimineața",
     "dinner": "Cină & Dans"
   },
@@ -115,4 +115,3 @@
     "en": "EN"
   }
 }
-

@@ -20,7 +20,7 @@
   },
   "wedding": {
     "title": "Ramona & Bogdan",
-    "subtitle": "We're getting married!",
+    "subtitle": "Join us for our special day!",
     "date": "October 4, 2025",
     "time": "at 6:00 PM",
     "location": {
@@ -41,11 +41,11 @@
   },
   "ceremony": {
     "title": "Ceremony",
-    "description": "The ceremony will be held at Church Biserica Icoanei.",
+    "description": "The ceremony will be held at Biserica Icoanei, Str. Icoanei nr. 12, sector 2, Bucureşti, Romania",
     "time": "2:00 PM - 3:00 PM"
   },
   "reception": {
-    "title": "Reception",
+    "title": "Wedding Party",
     "description": "Join us for dinner, dancing, and celebration following the ceremony.",
     "time": "6:00 PM - Morning",
     "dinner": "Dinner & Dancing"
