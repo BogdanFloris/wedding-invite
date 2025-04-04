@@ -89,6 +89,14 @@ func HandleRSVP() http.Handler {
 			return
 		}
 
+		// Check for "Primary Contact" auto-generated entries and remove them 
+		// so user starts with a clean form when editing
+		err := models.RemovePrimaryContactGuest(session.InvitationEmail)
+		if err != nil {
+			log.Printf("Error removing primary contact entry: %v", err)
+			// Continue anyway - non-critical error
+		}
+
 		// Check for success message
 		successMsg := ""
 		if r.URL.Query().Get("success") == "true" {
@@ -306,7 +314,13 @@ func HandleRSVPStatus() http.Handler {
 			return
 		}
 
-		// Render RSVP status page
-		templates.RSVPStatus(email, guests, r).Render(r.Context(), w)
+		// Check if we have only the "Primary Contact" auto entry
+		hasPrimaryContactOnly := false
+		if len(guests) == 1 && guests[0].Name == "Primary Contact" {
+			hasPrimaryContactOnly = true
+		}
+
+		// Render RSVP status page with the flag
+		templates.RSVPStatus(email, guests, hasPrimaryContactOnly, r).Render(r.Context(), w)
 	}))
 }

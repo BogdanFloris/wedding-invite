@@ -214,3 +214,14 @@ func RecordAttendanceStatus(email string, attending bool) error {
 	_, err = result.LastInsertId()
 	return err
 }
+
+// RemovePrimaryContactGuest removes the auto-generated "Primary Contact" guest entry
+// if it exists for the given invitation
+func RemovePrimaryContactGuest(email string) error {
+	_, err := db.DB.Exec(`
+		DELETE FROM guests 
+		WHERE invitation_email = ? AND name = 'Primary Contact'
+	`, email)
+	
+	return err
+}

@@ -219,7 +219,7 @@ templ SuccessMessage(email string, r *http.Request) {
 }
 
 // RSVPStatus renders the RSVP status page
-templ RSVPStatus(email string, guests []models.Guest, r *http.Request) {
+templ RSVPStatus(email string, guests []models.Guest, hasPrimaryContactOnly bool, r *http.Request) {
 	@AuthBase(i18n.T(middleware.GetLanguage(r), "rsvp.status.title")+" - "+email, r) {
 		<div class="max-w-4xl mx-auto">
 			<div class="bg-white rounded-lg shadow-md p-8 mb-8">
@@ -243,46 +243,63 @@ templ RSVPStatus(email string, guests []models.Guest, r *http.Request) {
 						<h3 class="px-4 py-2 bg-gray-50 text-gray-700 font-medium">{ i18n.T(middleware.GetLanguage(r), "rsvp.status.your_guests") }</h3>
 						<ul role="list" class="divide-y divide-gray-200">
 							for _, guest := range guests {
-								<li class="px-4 py-4 sm:px-6">
-									<div class="flex items-center justify-between">
-										<p class="truncate text-lg font-medium text-gray-800">{ guest.Name }</p>
-										<div class="ml-2 flex-shrink-0">
-											if guest.Attending.Valid {
-												if guest.Attending.Bool {
-													<span class="inline-flex items-center rounded-full bg-green-100 px-3 py-0.5 text-sm font-medium text-green-800">
-														{ i18n.T(middleware.GetLanguage(r), "rsvp.status.attending") }
-													</span>
-												} else {
-													<span class="inline-flex items-center rounded-full bg-red-100 px-3 py-0.5 text-sm font-medium text-red-800">
-														{ i18n.T(middleware.GetLanguage(r), "rsvp.status.not_attending") }
-													</span>
-												}
-											} else {
-												<span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-0.5 text-sm font-medium text-gray-600">
-													Not Responded
+								if hasPrimaryContactOnly && guest.Name == "Primary Contact" {
+									// For the "Primary Contact" auto-entry, show a simplified response
+									// to better reflect that they haven't added actual guests
+									<li class="px-4 py-4 sm:px-6 text-center">
+										<div class="mb-2">
+											if guest.Attending.Valid && !guest.Attending.Bool {
+												<span class="inline-flex items-center rounded-full bg-red-100 px-4 py-2 text-base font-medium text-red-800">
+													{ i18n.T(middleware.GetLanguage(r), "rsvp.status.not_attending") }
 												</span>
 											}
 										</div>
-									</div>
-									if guest.Attending.Valid && guest.Attending.Bool {
-										<div class="mt-2 text-sm text-gray-600">
-											<p class="truncate">
-												<span class="font-medium">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.meal_preference") }:</span>
-												if guest.MealPreference.Valid {
-													{ getMealTranslation(middleware.GetLanguage(r), guest.MealPreference.String) }
+										<p class="text-gray-600 text-sm mb-2">
+											You indicated that you will not be attending the wedding.
+										</p>
+									</li>
+								} else {
+									<li class="px-4 py-4 sm:px-6">
+										<div class="flex items-center justify-between">
+											<p class="truncate text-lg font-medium text-gray-800">{ guest.Name }</p>
+											<div class="ml-2 flex-shrink-0">
+												if guest.Attending.Valid {
+													if guest.Attending.Bool {
+														<span class="inline-flex items-center rounded-full bg-green-100 px-3 py-0.5 text-sm font-medium text-green-800">
+															{ i18n.T(middleware.GetLanguage(r), "rsvp.status.attending") }
+														</span>
+													} else {
+														<span class="inline-flex items-center rounded-full bg-red-100 px-3 py-0.5 text-sm font-medium text-red-800">
+															{ i18n.T(middleware.GetLanguage(r), "rsvp.status.not_attending") }
+														</span>
+													}
 												} else {
-													Not selected
+													<span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-0.5 text-sm font-medium text-gray-600">
+														Not Responded
+													</span>
 												}
-											</p>
-											if guest.DietaryRestrictions.Valid && guest.DietaryRestrictions.String != "" {
-												<p class="mt-1">
-													<span class="font-medium">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.dietary_notes") }:</span>
-													{ guest.DietaryRestrictions.String }
-												</p>
-											}
+											</div>
 										</div>
-									}
-								</li>
+										if guest.Attending.Valid && guest.Attending.Bool {
+											<div class="mt-2 text-sm text-gray-600">
+												<p class="truncate">
+													<span class="font-medium">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.meal_preference") }:</span>
+													if guest.MealPreference.Valid {
+														{ getMealTranslation(middleware.GetLanguage(r), guest.MealPreference.String) }
+													} else {
+														Not selected
+													}
+												</p>
+												if guest.DietaryRestrictions.Valid && guest.DietaryRestrictions.String != "" {
+													<p class="mt-1">
+														<span class="font-medium">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.dietary_notes") }:</span>
+														{ guest.DietaryRestrictions.String }
+													</p>
+												}
+											</div>
+										}
+									</li>
+								}
 							}
 						</ul>
 					</div>
