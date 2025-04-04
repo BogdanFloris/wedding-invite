@@ -19,8 +19,7 @@ COPY . .
 RUN templ generate
 
 # Build main app and admin tool
-RUN CGO_ENABLED=1 go build -o wedding-app ./cmd/server && \
-    CGO_ENABLED=1 go build -o admin-tool ./cmd/admin
+RUN CGO_ENABLED=1 go build -o wedding-app ./cmd/server
 
 FROM alpine:3.19
 
@@ -31,15 +30,10 @@ RUN apk add --no-cache ca-certificates sqlite
 
 # Copy the binaries from builder
 COPY --from=builder /app/wedding-app .
-COPY --from=builder /app/admin-tool .
 
 # Copy static and template files
 COPY --from=builder /app/static ./static
 COPY --from=builder /app/locales ./locales
-
-# Copy and set permissions for admin script
-COPY admin.sh .
-RUN chmod +x admin.sh
 
 # Create volume for database
 VOLUME /data
