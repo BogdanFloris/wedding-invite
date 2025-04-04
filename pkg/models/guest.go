@@ -198,3 +198,19 @@ func GetGuest(id int64) (*Guest, error) {
 
 	return &g, nil
 }
+
+// RecordAttendanceStatus records overall attendance status when no guests are present
+func RecordAttendanceStatus(email string, attending bool) error {
+	// Create a minimal guest entry to record attendance
+	result, err := db.DB.Exec(`
+		INSERT INTO guests (invitation_email, name, attending, last_updated)
+		VALUES (?, 'Primary Contact', ?, CURRENT_TIMESTAMP)
+	`, email, attending)
+	
+	if err != nil {
+		return err
+	}
+	
+	_, err = result.LastInsertId()
+	return err
+}

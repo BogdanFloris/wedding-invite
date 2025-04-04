@@ -12,7 +12,7 @@ import (
 	"wedding-invite/templates"
 )
 
-// renderRSVPForm is a helper function to render the RSVP form with the latest data
+// renderRSVPForm is a helper function to render the full RSVP form with the latest data
 func renderRSVPForm(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -46,6 +46,39 @@ func renderRSVPForm(
 		Render(r.Context(), w)
 }
 
+// renderRSVPFormContent is a helper function to render just the form content for HTMX updates
+func renderRSVPFormContent(
+	w http.ResponseWriter,
+	r *http.Request,
+	email string,
+) {
+	// Get guest data
+	guests, err := models.GetGuestsByInvitation(email)
+	if err != nil {
+		log.Printf("Error fetching guests: %v", err)
+		http.Error(w, "Failed to load guest data", http.StatusInternalServerError)
+		return
+	}
+
+	// Check if more guests can be added
+	canAddMore, err := models.CheckCanAddGuest(email)
+	if err != nil {
+		log.Printf("Error checking guest limit: %v", err)
+		canAddMore = false // Default to false on error
+	}
+
+	// Get max guests
+	maxGuests, err := models.GetMaxGuestCount(email)
+	if err != nil {
+		log.Printf("Error fetching max guests: %v", err)
+		maxGuests = len(guests) // Default to current count on error
+	}
+
+	// Render just the form content for HTMX updates
+	templates.RSVPFormContent(email, email, guests, canAddMore, maxGuests, models.MealOptions, r).
+		Render(r.Context(), w)
+}
+
 // HandleRSVP displays the RSVP form
 func HandleRSVP() http.Handler {
 	return middleware.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -66,7 +99,7 @@ func HandleRSVP() http.Handler {
 	}))
 }
 
-// HandleAddGuest adds a new guest and redirects back to the RSVP page
+// HandleAddGuest adds a new guest and renders the updated RSVP form
 func HandleAddGuest() http.Handler {
 	return middleware.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Get session from context
@@ -88,7 +121,6 @@ func HandleAddGuest() http.Handler {
 
 		var guestName string
 
-		// For GET requests (direct link clicks), use default name
 		// For POST requests (form submissions), get name from form
 		if r.Method == http.MethodPost {
 			// Parse the form
@@ -101,9 +133,6 @@ func HandleAddGuest() http.Handler {
 			guestName = strings.TrimSpace(r.Form.Get("guest_name"))
 		}
 
-		// If no name was provided, leave it blank and let user fill it in
-		// Empty guest names will be displayed with a placeholder in the UI
-
 		// Create the guest
 		_, err = models.CreateGuest(email, guestName)
 		if err != nil {
@@ -112,14 +141,20 @@ func HandleAddGuest() http.Handler {
 			return
 		}
 
-		// Redirect to the RSVP page with a timestamp to prevent caching
+		// For HTMX requests, render just the form content
+		if r.Header.Get("HX-Request") == "true" {
+			renderRSVPFormContent(w, r, email)
+			return
+		}
+
+		// For regular requests, redirect to prevent form resubmission
 		timestamp := time.Now().Unix()
 		redirectURL := fmt.Sprintf("/rsvp?t=%d", timestamp)
 		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 	}))
 }
 
-// HandleDeleteGuest removes a guest and redirects back to the RSVP page
+// HandleDeleteGuest removes a guest and renders the updated RSVP form
 func HandleDeleteGuest() http.Handler {
 	return middleware.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Get session from context
@@ -146,10 +181,6 @@ func HandleDeleteGuest() http.Handler {
 			return
 		}
 
-		// For standard GET requests (direct clicks on links)
-		// For DELETE requests (from HTMX)
-		// Both should be handled the same way
-
 		// Delete the guest
 		err = models.DeleteGuest(guestID, email)
 		if err != nil {
@@ -158,8 +189,13 @@ func HandleDeleteGuest() http.Handler {
 			return
 		}
 
-		// Redirect to the RSVP page with a specific GET parameter to force reload
-		// Adding a timestamp to bust any cache
+		// For HTMX requests, render just the form content
+		if r.Header.Get("HX-Request") == "true" {
+			renderRSVPFormContent(w, r, email)
+			return
+		}
+
+		// For regular requests, redirect to prevent form resubmission
 		timestamp := time.Now().Unix()
 		redirectURL := fmt.Sprintf("/rsvp?t=%d", timestamp)
 		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
@@ -196,35 +232,52 @@ func HandleSubmitRSVP() http.Handler {
 
 		// Process existing guests
 		guestIDs := r.Form["guest_ids[]"]
-		for _, guestIDStr := range guestIDs {
-			guestID, err := strconv.ParseInt(guestIDStr, 10, 64)
-			if err != nil {
-				log.Printf("Invalid guest ID %s: %v", guestIDStr, err)
-				continue
-			}
-
-			// Get form field values
-			guestName := r.Form.Get(fmt.Sprintf("guest_name_%d", guestID))
-			mealPreference := r.Form.Get(fmt.Sprintf("guest_meal_%d", guestID))
-			dietaryRestrictions := r.Form.Get(fmt.Sprintf("guest_dietary_%d", guestID))
-
-			// Update guest name if needed
-			if guestName != "" {
-				err := models.UpdateGuestName(guestID, email, guestName)
+		
+		// If there are no guests but the user has made a selection (not attending)
+		// create a record to track their decision
+		if len(guestIDs) == 0 {
+			// Only create an entry if declining (attending=false)
+			// For attending=true, we should have at least one guest
+			if !partyAttending {
+				err := models.RecordAttendanceStatus(email, partyAttending)
 				if err != nil {
-					log.Printf("Error updating guest name for guest %d: %v", guestID, err)
+					log.Printf("Error recording attendance status: %v", err)
 				}
+			} else {
+				log.Printf("Warning: User selected 'attending' but didn't add any guests")
 			}
+		} else {
+			// Process existing guests
+			for _, guestIDStr := range guestIDs {
+				guestID, err := strconv.ParseInt(guestIDStr, 10, 64)
+				if err != nil {
+					log.Printf("Invalid guest ID %s: %v", guestIDStr, err)
+					continue
+				}
 
-			// Update guest RSVP status
-			err = models.UpdateGuestRSVP(
-				guestID,
-				partyAttending,
-				mealPreference,
-				dietaryRestrictions,
-			)
-			if err != nil {
-				log.Printf("Error updating RSVP for guest %d: %v", guestID, err)
+				// Get form field values
+				guestName := r.Form.Get(fmt.Sprintf("guest_name_%d", guestID))
+				mealPreference := r.Form.Get(fmt.Sprintf("guest_meal_%d", guestID))
+				dietaryRestrictions := r.Form.Get(fmt.Sprintf("guest_dietary_%d", guestID))
+
+				// Update guest name if needed
+				if guestName != "" {
+					err := models.UpdateGuestName(guestID, email, guestName)
+					if err != nil {
+						log.Printf("Error updating guest name for guest %d: %v", guestID, err)
+					}
+				}
+
+				// Update guest RSVP status
+				err = models.UpdateGuestRSVP(
+					guestID,
+					partyAttending,
+					mealPreference,
+					dietaryRestrictions,
+				)
+				if err != nil {
+					log.Printf("Error updating RSVP for guest %d: %v", guestID, err)
+				}
 			}
 		}
 

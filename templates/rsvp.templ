@@ -9,6 +9,96 @@ import (
 	"wedding-invite/pkg/models"
 )
 
+// RSVPFormContent renders just the form content for HTMX updates
+templ RSVPFormContent(email, invitationEmail string, guests []models.Guest, canAddGuest bool, maxGuests int, mealOptions []string, r *http.Request) {
+	<form id="rsvp-form" hx-post="/rsvp/submit" hx-target="#rsvp-container" hx-swap="innerHTML">
+		<input type="hidden" name="invitation_id" value={ invitationEmail }/>
+		<input type="hidden" name="max_guests" value={ strconv.Itoa(maxGuests) }/>
+		
+		<!-- Attendance choice for the whole party - always shown -->
+		<div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
+			<h3 class="text-xl font-semibold text-gray-800 mb-4">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.question") }?</h3>
+			<div class="flex space-x-6">
+				<label class="inline-flex items-center">
+					<input
+						type="radio"
+						name="party_attending"
+						value="yes"
+						class="form-radio h-5 w-5 text-primary"
+						required="required"
+						if anyGuestsAttending(guests) {
+							checked
+						}
+					/>
+					<span class="ml-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.attending") }</span>
+				</label>
+				<label class="inline-flex items-center">
+					<input
+						type="radio"
+						name="party_attending"
+						value="no"
+						class="form-radio h-5 w-5 text-red-500"
+						required="required"
+						if allGuestsNotAttending(guests) {
+							checked
+						}
+					/>
+					<span class="ml-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.not_attending") }</span>
+				</label>
+			</div>
+		</div>
+		
+		if len(guests) == 0 && canAddGuest {
+			<div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-8">
+				<p class="text-center text-yellow-800">
+					{ i18n.T(middleware.GetLanguage(r), "rsvp.form.initialText") }
+				</p>
+			</div>
+		}
+		
+		<!-- Guest Information Section -->
+		<div class="mb-6">
+			if len(guests) > 0 {
+				<div class="flex justify-between items-center mb-4">
+					<h3 class="text-lg font-semibold text-gray-700">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.guests") }</h3>
+					<!-- Removed max guests counter -->
+				</div>
+				<div id="guests-container" class="space-y-4">
+					for i, guest := range guests {
+						@GuestCard(guest, mealOptions, i, r)
+					}
+				</div>
+			}
+			
+			if canAddGuest && len(guests) < maxGuests {
+				<div class="mt-6 text-center">
+					<button
+						hx-post="/rsvp/add-guest"
+						hx-target="#rsvp-container"
+						hx-swap="innerHTML"
+						type="button"
+						class="inline-flex items-center text-primary hover:text-primary-dark font-medium py-2 px-4 rounded-md transition duration-300 border border-primary hover:border-primary-dark"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path>
+						</svg>
+						{ i18n.T(middleware.GetLanguage(r), "rsvp.form.add_guest") }
+					</button>
+				</div>
+			}
+		</div>
+		
+		<div class="mt-8 flex justify-center">
+			<button
+				type="submit"
+				class="bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300"
+			>
+				{ i18n.T(middleware.GetLanguage(r), "rsvp.form.submit") }
+			</button>
+		</div>
+	</form>
+}
+
 // RSVPForm renders the RSVP form
 templ RSVPForm(email, invitationEmail string, guests []models.Guest, canAddGuest bool, maxGuests int, mealOptions []string, successMsg string, r *http.Request) {
 	@AuthBase(i18n.T(middleware.GetLanguage(r), "rsvp.title")+" - "+email, r) {
@@ -27,96 +117,7 @@ templ RSVPForm(email, invitationEmail string, guests []models.Guest, canAddGuest
 				}
 				<!-- Main RSVP Form -->
 				<div id="rsvp-container">
-					if len(guests) == 0 && canAddGuest {
-						<div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-8">
-							<p class="text-center text-yellow-800">
-								{ i18n.T(middleware.GetLanguage(r), "rsvp.form.initialText") }
-							</p>
-						</div>
-						<div class="text-center">
-							<a
-								href="/rsvp/add-guest"
-								class="bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300 inline-block"
-							>
-								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 inline" viewBox="0 0 20 20" fill="currentColor">
-									<path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path>
-								</svg>
-								{ i18n.T(middleware.GetLanguage(r), "rsvp.form.add_guest") }
-							</a>
-						</div>
-					} else {
-						<form id="rsvp-form" hx-post="/rsvp/submit" hx-target="#rsvp-container" hx-swap="innerHTML">
-							<input type="hidden" name="invitation_id" value={ invitationEmail }/>
-							<input type="hidden" name="max_guests" value={ strconv.Itoa(maxGuests) }/>
-							<!-- Attendance choice for the whole party -->
-							<div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
-								<h3 class="text-xl font-semibold text-gray-800 mb-4">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.question") }?</h3>
-								<div class="flex space-x-6">
-									<label class="inline-flex items-center">
-										<input
-											type="radio"
-											name="party_attending"
-											value="yes"
-											class="form-radio h-5 w-5 text-primary"
-											required="required"
-											if anyGuestsAttending(guests) {
-												checked
-											}
-										/>
-										<span class="ml-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.attending") }</span>
-									</label>
-									<label class="inline-flex items-center">
-										<input
-											type="radio"
-											name="party_attending"
-											value="no"
-											class="form-radio h-5 w-5 text-red-500"
-											required="required"
-											if allGuestsNotAttending(guests) {
-												checked
-											}
-										/>
-										<span class="ml-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.not_attending") }</span>
-									</label>
-								</div>
-							</div>
-							<!-- Guest Information Section -->
-							<div class="mb-6">
-								<div class="flex justify-between items-center mb-4">
-									<h3 class="text-lg font-semibold text-gray-700">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.guests") }</h3>
-									<span id="guest-count" class="text-sm text-gray-500">
-										{ formatMaxGuestsMessage(middleware.GetLanguage(r), "rsvp.form.max_guests", maxGuests) }
-									</span>
-								</div>
-								<div id="guests-container" class="space-y-4">
-									for i, guest := range guests {
-										@GuestCard(guest, mealOptions, i, r)
-									}
-								</div>
-								if canAddGuest && len(guests) < maxGuests {
-									<div class="mt-6 text-center">
-										<a
-											href="/rsvp/add-guest"
-											class="inline-flex items-center text-primary hover:text-primary-dark font-medium py-2 px-4 rounded-md transition duration-300 border border-primary hover:border-primary-dark"
-										>
-											<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-												<path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path>
-											</svg>
-											{ i18n.T(middleware.GetLanguage(r), "rsvp.form.add_guest") }
-										</a>
-									</div>
-								}
-							</div>
-							<div class="mt-8 flex justify-center">
-								<button
-									type="submit"
-									class="bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300"
-								>
-									{ i18n.T(middleware.GetLanguage(r), "rsvp.form.submit") }
-								</button>
-							</div>
-						</form>
-					}
+					@RSVPFormContent(email, invitationEmail, guests, canAddGuest, maxGuests, mealOptions, r)
 				</div>
 				<div class="mt-8 pt-6 border-t border-gray-200 text-center">
 					<p class="text-sm text-gray-500">
@@ -144,12 +145,15 @@ templ GuestCard(guest models.Guest, mealOptions []string, index int, r *http.Req
 					}
 				</h3>
 			</div>
-			<a
-				href={ templ.SafeURL("/rsvp/guest/" + strconv.FormatInt(guest.ID, 10)) }
+			<button
+				type="button"
+				hx-post={ "/rsvp/guest/" + strconv.FormatInt(guest.ID, 10) }
+				hx-target="#rsvp-container"
+				hx-swap="innerHTML"
 				class="text-red-500 hover:text-red-700 text-sm"
 			>
 				{ i18n.T(middleware.GetLanguage(r), "rsvp.form.remove") }
-			</a>
+			</button>
 		</div>
 		<!-- Hidden input to track this guest -->
 		<input type="hidden" name="guest_ids[]" value={ strconv.FormatInt(guest.ID, 10) }/>
