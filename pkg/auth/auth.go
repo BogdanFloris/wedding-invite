@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 	"wedding-invite/pkg/db"
@@ -190,15 +191,25 @@ func SetSessionCookie(w http.ResponseWriter, session *Session) {
 	// Create a secure session token
 	token := security.CreateSessionToken(session.ID)
 
+	// Check if we're in development mode
+	isDev := os.Getenv("ENVIRONMENT") == "development" || os.Getenv("ENVIRONMENT") == "dev" || os.Getenv("ENVIRONMENT") == ""
+
 	// Set the cookie
+	var sameSite http.SameSite
+	if isDev {
+		sameSite = http.SameSiteLaxMode
+	} else {
+		sameSite = http.SameSiteStrictMode
+	}
+
 	cookie := &http.Cookie{
 		Name:     SessionCookieName,
 		Value:    token,
 		Path:     "/",
 		Expires:  session.ExpiresAt,
 		HttpOnly: true,
-		Secure:   true, // Requires HTTPS
-		SameSite: http.SameSiteStrictMode,
+		Secure:   !isDev, // Only require HTTPS in production
+		SameSite: sameSite,
 	}
 
 	http.SetCookie(w, cookie)
@@ -206,14 +217,24 @@ func SetSessionCookie(w http.ResponseWriter, session *Session) {
 
 // ClearSessionCookie removes the session cookie
 func ClearSessionCookie(w http.ResponseWriter) {
+	// Check if we're in development mode
+	isDev := os.Getenv("ENVIRONMENT") == "development" || os.Getenv("ENVIRONMENT") == "dev" || os.Getenv("ENVIRONMENT") == ""
+
+	var sameSite http.SameSite
+	if isDev {
+		sameSite = http.SameSiteLaxMode
+	} else {
+		sameSite = http.SameSiteStrictMode
+	}
+
 	cookie := &http.Cookie{
 		Name:     SessionCookieName,
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,
 		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
+		Secure:   !isDev, // Only require HTTPS in production
+		SameSite: sameSite,
 	}
 
 	http.SetCookie(w, cookie)
