@@ -36,15 +36,15 @@ func Initialize() error {
 	if _, err := rand.Read(newKey); err != nil {
 		return fmt.Errorf("failed to generate secret key: %w", err)
 	}
-	
+
 	secretKey = newKey
-	
+
 	// For development/first-time setup, provide the key for adding to environment
 	encodedKey := base64.StdEncoding.EncodeToString(secretKey)
 	log.Printf("⚠️ WARNING: Using temporary SECRET_KEY. For production, set this in environment:")
 	log.Printf("SECRET_KEY=\"%s\"", encodedKey)
 	log.Printf("Add this to your .env file or fly.io secrets")
-	
+
 	return nil
 }
 
@@ -53,21 +53,21 @@ func GenerateInvitationCode() (string, error) {
 	// Define the characters to use (alphanumeric only for readability)
 	const charset = "abcdefghijkmnpqrstuvwxyz23456789" // removed confusing chars like 0/O, 1/l
 	const codeLength = 8
-	
+
 	// Create a slice to store the code
 	code := make([]byte, codeLength)
-	
+
 	// Generate random bytes
 	randomBytes := make([]byte, codeLength)
 	if _, err := rand.Read(randomBytes); err != nil {
 		return "", fmt.Errorf("failed to generate random bytes: %w", err)
 	}
-	
+
 	// Map random bytes to characters in charset
 	for i, b := range randomBytes {
 		code[i] = charset[b%byte(len(charset))]
 	}
-	
+
 	return string(code), nil
 }
 
@@ -78,7 +78,7 @@ func GenerateSessionID() (string, error) {
 	if _, err := rand.Read(idBytes); err != nil {
 		return "", fmt.Errorf("failed to generate session ID: %w", err)
 	}
-	
+
 	// Encode as hex
 	id := hex.EncodeToString(idBytes)
 	return id, nil
@@ -96,12 +96,12 @@ func CreateSessionToken(sessionID string) string {
 	// Combine session ID and timestamp for added security
 	timestamp := time.Now().Unix()
 	payload := fmt.Sprintf("%s|%d", sessionID, timestamp)
-	
+
 	// Sign with HMAC
 	h := hmac.New(sha256.New, secretKey)
 	h.Write([]byte(payload))
 	signature := hex.EncodeToString(h.Sum(nil))
-	
+
 	// Combine payload and signature
 	token := fmt.Sprintf("%s.%s", payload, signature)
 	return base64.URLEncoding.EncodeToString([]byte(token))
@@ -114,34 +114,34 @@ func VerifySessionToken(tokenString string) (string, bool) {
 	if err != nil {
 		return "", false
 	}
-	
+
 	token := string(tokenBytes)
-	
+
 	// Split token into payload and signature
 	parts := split(token, ".")
 	if len(parts) != 2 {
 		return "", false
 	}
-	
+
 	payload := parts[0]
 	providedSignature := parts[1]
-	
+
 	// Compute expected signature
 	h := hmac.New(sha256.New, secretKey)
 	h.Write([]byte(payload))
 	expectedSignature := hex.EncodeToString(h.Sum(nil))
-	
+
 	// Verify signature
 	if !hmac.Equal([]byte(providedSignature), []byte(expectedSignature)) {
 		return "", false
 	}
-	
+
 	// Extract session ID from payload
 	payloadParts := split(payload, "|")
 	if len(payloadParts) != 2 {
 		return "", false
 	}
-	
+
 	return payloadParts[0], true
 }
 
@@ -151,7 +151,7 @@ func split(s, sep string) []string {
 	if s == "" {
 		return result
 	}
-	
+
 	start := 0
 	for i := 0; i < len(s); i++ {
 		if i+len(sep) <= len(s) && s[i:i+len(sep)] == sep {
@@ -160,7 +160,7 @@ func split(s, sep string) []string {
 			i += len(sep) - 1
 		}
 	}
-	
+
 	result = append(result, s[start:])
 	return result
 }

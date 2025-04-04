@@ -24,7 +24,7 @@ func Initialize() error {
 	dbDir := filepath.Dir(dbPath)
 	if _, err := os.Stat(dbDir); os.IsNotExist(err) {
 		log.Printf("Creating database directory: %s", dbDir)
-		if err := os.MkdirAll(dbDir, 0755); err != nil {
+		if err := os.MkdirAll(dbDir, 0o755); err != nil {
 			return fmt.Errorf("failed to create database directory: %w", err)
 		}
 	}

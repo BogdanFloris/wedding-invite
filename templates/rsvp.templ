@@ -14,7 +14,6 @@ templ RSVPFormContent(email, invitationEmail string, guests []models.Guest, canA
 	<form id="rsvp-form" hx-post="/rsvp/submit" hx-target="#rsvp-container" hx-swap="innerHTML">
 		<input type="hidden" name="invitation_id" value={ invitationEmail }/>
 		<input type="hidden" name="max_guests" value={ strconv.Itoa(maxGuests) }/>
-		
 		<!-- Attendance choice for the whole party - always shown -->
 		<div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
 			<h3 class="text-xl font-semibold text-gray-800 mb-4">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.question") }?</h3>
@@ -47,7 +46,6 @@ templ RSVPFormContent(email, invitationEmail string, guests []models.Guest, canA
 				</label>
 			</div>
 		</div>
-		
 		if len(guests) == 0 && canAddGuest {
 			<div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-8">
 				<p class="text-center text-yellow-800">
@@ -55,7 +53,6 @@ templ RSVPFormContent(email, invitationEmail string, guests []models.Guest, canA
 				</p>
 			</div>
 		}
-		
 		<!-- Guest Information Section -->
 		<div class="mb-6">
 			if len(guests) > 0 {
@@ -69,7 +66,6 @@ templ RSVPFormContent(email, invitationEmail string, guests []models.Guest, canA
 					}
 				</div>
 			}
-			
 			if canAddGuest && len(guests) < maxGuests {
 				<div class="mt-6 text-center">
 					<button
@@ -87,7 +83,6 @@ templ RSVPFormContent(email, invitationEmail string, guests []models.Guest, canA
 				</div>
 			}
 		</div>
-		
 		<div class="mt-8 flex justify-center">
 			<button
 				type="submit"

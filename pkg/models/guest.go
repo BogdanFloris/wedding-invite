@@ -21,12 +21,12 @@ type Guest struct {
 // MealOptions defines available meal choices
 var MealOptions = []string{
 	"Standard",
-	"Vegetarian", // Meniu vegetarian nunta
+	"Vegetarian",           // Meniu vegetarian nunta
 	"Ovo-Lacto Vegetarian", // Meniu ovo-lacto vegetarian nunta
-	"Ovo-Lacto with Fish", // Meniu ovo-lacto cu peste nunta
-	"Muslim", // Meniu musulmani nunta
-	"Gluten-Free", // Meniu fara Gluten
-	"Lactose-Free", // Meniu fara lactoza
+	"Ovo-Lacto with Fish",  // Meniu ovo-lacto cu peste nunta
+	"Muslim",               // Meniu musulmani nunta
+	"Gluten-Free",          // Meniu fara Gluten
+	"Lactose-Free",         // Meniu fara lactoza
 	"Child",
 }
 
@@ -206,11 +206,10 @@ func RecordAttendanceStatus(email string, attending bool) error {
 		INSERT INTO guests (invitation_email, name, attending, last_updated)
 		VALUES (?, 'Primary Contact', ?, CURRENT_TIMESTAMP)
 	`, email, attending)
-	
 	if err != nil {
 		return err
 	}
-	
+
 	_, err = result.LastInsertId()
 	return err
 }
@@ -222,6 +221,6 @@ func RemovePrimaryContactGuest(email string) error {
 		DELETE FROM guests 
 		WHERE invitation_email = ? AND name = 'Primary Contact'
 	`, email)
-	
+
 	return err
 }

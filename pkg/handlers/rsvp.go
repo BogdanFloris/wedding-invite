@@ -89,7 +89,7 @@ func HandleRSVP() http.Handler {
 			return
 		}
 
-		// Check for "Primary Contact" auto-generated entries and remove them 
+		// Check for "Primary Contact" auto-generated entries and remove them
 		// so user starts with a clean form when editing
 		err := models.RemovePrimaryContactGuest(session.InvitationEmail)
 		if err != nil {
@@ -240,7 +240,7 @@ func HandleSubmitRSVP() http.Handler {
 
 		// Process existing guests
 		guestIDs := r.Form["guest_ids[]"]
-		
+
 		// If there are no guests but the user has made a selection (not attending)
 		// create a record to track their decision
 		if len(guestIDs) == 0 {

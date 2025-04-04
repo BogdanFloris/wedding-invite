@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"time"
+
 	"wedding-invite/pkg/db"
 	"wedding-invite/pkg/security"
 )
@@ -74,18 +75,17 @@ func ValidateEmail(email string, r *http.Request) (*Invitation, error) {
 	if err == sql.ErrNoRows {
 		// Get IP address for registration tracking
 		ipAddress := getIP(r)
-		
+
 		// Create new invitation
 		_, err = db.DB.Exec(`
 			INSERT INTO invitations (email, registration_ip, max_guests)
 			VALUES (?, ?, 6)
 		`, email, ipAddress)
-		
 		if err != nil {
 			log.Printf("Error creating new invitation: %v", err)
 			return nil, ErrInternalError
 		}
-		
+
 		// Now retrieve the newly created invitation
 		err = db.DB.QueryRow(`
 			SELECT email, max_guests, phone, created_at, last_access, approved
@@ -99,7 +99,6 @@ func ValidateEmail(email string, r *http.Request) (*Invitation, error) {
 			&invitation.LastAccess,
 			&invitation.Approved,
 		)
-		
 		if err != nil {
 			log.Printf("Error retrieving new invitation: %v", err)
 			return nil, ErrInternalError
@@ -192,7 +191,8 @@ func SetSessionCookie(w http.ResponseWriter, session *Session) {
 	token := security.CreateSessionToken(session.ID)
 
 	// Check if we're in development mode
-	isDev := os.Getenv("ENVIRONMENT") == "development" || os.Getenv("ENVIRONMENT") == "dev" || os.Getenv("ENVIRONMENT") == ""
+	isDev := os.Getenv("ENVIRONMENT") == "development" || os.Getenv("ENVIRONMENT") == "dev" ||
+		os.Getenv("ENVIRONMENT") == ""
 
 	// Set the cookie
 	var sameSite http.SameSite
@@ -218,7 +218,8 @@ func SetSessionCookie(w http.ResponseWriter, session *Session) {
 // ClearSessionCookie removes the session cookie
 func ClearSessionCookie(w http.ResponseWriter) {
 	// Check if we're in development mode
-	isDev := os.Getenv("ENVIRONMENT") == "development" || os.Getenv("ENVIRONMENT") == "dev" || os.Getenv("ENVIRONMENT") == ""
+	isDev := os.Getenv("ENVIRONMENT") == "development" || os.Getenv("ENVIRONMENT") == "dev" ||
+		os.Getenv("ENVIRONMENT") == ""
 
 	var sameSite http.SameSite
 	if isDev {
