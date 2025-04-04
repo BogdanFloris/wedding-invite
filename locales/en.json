@@ -6,15 +6,14 @@
   "login": {
     "title": "R & B",
     "subtitle": "Join us for our special day!",
-    "form_title": "Enter Your Invitation Code",
-    "code_label": "Invitation Code",
-    "code_placeholder": "Enter your code here",
-    "code_help": "Found on your invitation or in the message we sent you.",
+    "form_title": "Enter Your Email Address",
+    "email_label": "Email Address",
+    "email_placeholder": "your.email@example.com",
+    "email_help": "We'll use this to track your RSVP and send you updates.",
     "submit": "Access Wedding Details",
-    "lost_code": "Lost your invitation code? Contact us directly.",
     "errors": {
-      "invalid_code": "Invalid invitation code. Please check and try again.",
-      "auth_required": "Please enter your invitation code to continue.",
+      "invalid_email": "Invalid email address. Please check and try again.",
+      "auth_required": "Please enter your email to continue.",
       "system": "System error. Please try again later."
     }
   },

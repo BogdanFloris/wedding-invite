@@ -6,15 +6,14 @@
   "login": {
     "title": "R & B",
     "subtitle": "Alăturați-vă nouă în ziua noastră specială!",
-    "form_title": "Introduceți codul de invitație",
-    "code_label": "Cod invitație",
-    "code_placeholder": "Introduceți codul aici",
-    "code_help": "Se găsește pe invitația dvs. sau în mesajul pe care vi l-am trimis.",
+    "form_title": "Introduceți adresa dvs. de email",
+    "email_label": "Adresa de Email",
+    "email_placeholder": "email@exemplu.ro",
+    "email_help": "Vom folosi adresa pentru a vă trimite actualizări despre nuntă.",
     "submit": "Accesați detaliile nunții",
-    "lost_code": "Ați pierdut codul de invitație? Contactați-ne direct.",
     "errors": {
-      "invalid_code": "Cod de invitație invalid. Vă rugăm să verificați și să încercați din nou.",
-      "auth_required": "Vă rugăm să introduceți codul de invitație pentru a continua.",
+      "invalid_email": "Adresă de email invalidă. Vă rugăm să verificați și să încercați din nou.",
+      "auth_required": "Vă rugăm să introduceți adresa de email pentru a continua.",
       "system": "Eroare de sistem. Vă rugăm să încercați mai târziu."
     }
   },

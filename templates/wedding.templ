@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-templ Wedding(invitationID string, hasRSVP bool, r *http.Request) {
+templ Wedding(email string, hasRSVP bool, r *http.Request) {
 	@AuthBase("Our Wedding", r) {
 		<div class="bg-white rounded-lg shadow-md p-8 mb-8">
 			<div class="text-center mb-8">

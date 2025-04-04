@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"strings"
 	"wedding-invite/pkg/auth"
 	"wedding-invite/pkg/middleware"
 	"wedding-invite/pkg/models"
@@ -13,13 +12,6 @@ import (
 func Home() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
-			// If not the root path, try to handle it as an invitation code
-			// Only process paths that look like invitation codes (no slashes in path)
-			if !strings.Contains(r.URL.Path[1:], "/") {
-				HandleInviteCode().ServeHTTP(w, r)
-				return
-			}
-
 			http.NotFound(w, r)
 			return
 		}
@@ -28,10 +20,10 @@ func Home() http.Handler {
 		errorMsg := ""
 		if errType := r.URL.Query().Get("error"); errType != "" {
 			switch errType {
-			case "invalid_code":
-				errorMsg = "Invalid invitation code. Please check and try again."
+			case "invalid_email":
+				errorMsg = "Invalid email address. Please check and try again."
 			case "auth_required":
-				errorMsg = "Please enter your invitation code to continue."
+				errorMsg = "Please enter your email to continue."
 			case "system":
 				errorMsg = "System error. Please try again later."
 			}
@@ -62,8 +54,8 @@ func Wedding() http.Handler {
 		}
 
 		// Check if the user has any RSVPs
-		invitationID := session.InvitationID
-		guestCount, err := models.GetGuestCount(invitationID)
+		email := session.InvitationEmail
+		guestCount, err := models.GetGuestCount(email)
 		if err != nil {
 			// If there's an error, assume no guests to be safe
 			guestCount = 0
@@ -72,6 +64,6 @@ func Wedding() http.Handler {
 		hasRSVP := guestCount > 0
 
 		// Render wedding info page
-		templates.Wedding(invitationID, hasRSVP, r).Render(r.Context(), w)
+		templates.Wedding(email, hasRSVP, r).Render(r.Context(), w)
 	}))
 }

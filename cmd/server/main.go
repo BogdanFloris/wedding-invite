@@ -70,9 +70,6 @@ func main() {
 	mux.Handle("/rsvp/add-guest", handlers.HandleAddGuest())
 	mux.Handle("/rsvp/submit", handlers.HandleSubmitRSVP())
 
-	// Handle invitation code URL pattern (e.g., /abc123)
-	// This is a special case that's handled in the Home handler
-
 	// Serve static files
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 

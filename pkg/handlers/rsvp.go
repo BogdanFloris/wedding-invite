@@ -16,41 +16,33 @@ import (
 func renderRSVPForm(
 	w http.ResponseWriter,
 	r *http.Request,
-	invitationID string,
+	email string,
 	successMsg string,
 ) {
 	// Get guest data
-	guests, err := models.GetGuestsByInvitation(invitationID)
+	guests, err := models.GetGuestsByInvitation(email)
 	if err != nil {
 		log.Printf("Error fetching guests: %v", err)
 		http.Error(w, "Failed to load guest data", http.StatusInternalServerError)
 		return
 	}
 
-	// Get family name
-	familyName, err := models.GetInvitationName(invitationID)
-	if err != nil {
-		log.Printf("Error fetching family name: %v", err)
-		http.Error(w, "Failed to load invitation data", http.StatusInternalServerError)
-		return
-	}
-
 	// Check if more guests can be added
-	canAddMore, err := models.CheckCanAddGuest(invitationID)
+	canAddMore, err := models.CheckCanAddGuest(email)
 	if err != nil {
 		log.Printf("Error checking guest limit: %v", err)
 		canAddMore = false // Default to false on error
 	}
 
 	// Get max guests
-	maxGuests, err := models.GetMaxGuestCount(invitationID)
+	maxGuests, err := models.GetMaxGuestCount(email)
 	if err != nil {
 		log.Printf("Error fetching max guests: %v", err)
 		maxGuests = len(guests) // Default to current count on error
 	}
 
 	// Render RSVP form
-	templates.RSVPForm(familyName, invitationID, guests, canAddMore, maxGuests, models.MealOptions, successMsg, r).
+	templates.RSVPForm(email, email, guests, canAddMore, maxGuests, models.MealOptions, successMsg, r).
 		Render(r.Context(), w)
 }
 
@@ -70,7 +62,7 @@ func HandleRSVP() http.Handler {
 			successMsg = "Your RSVP has been successfully submitted!"
 		}
 
-		renderRSVPForm(w, r, session.InvitationID, successMsg)
+		renderRSVPForm(w, r, session.InvitationEmail, successMsg)
 	}))
 }
 
@@ -84,10 +76,10 @@ func HandleAddGuest() http.Handler {
 			return
 		}
 
-		invitationID := session.InvitationID
+		email := session.InvitationEmail
 
 		// Check if we can add more guests first
-		canAdd, err := models.CheckCanAddGuest(invitationID)
+		canAdd, err := models.CheckCanAddGuest(email)
 		if err != nil || !canAdd {
 			log.Printf("Cannot add more guests: %v", err)
 			http.Error(w, "Maximum number of guests reached", http.StatusBadRequest)
@@ -113,7 +105,7 @@ func HandleAddGuest() http.Handler {
 		// Empty guest names will be displayed with a placeholder in the UI
 
 		// Create the guest
-		_, err = models.CreateGuest(invitationID, guestName)
+		_, err = models.CreateGuest(email, guestName)
 		if err != nil {
 			log.Printf("Error creating guest: %v", err)
 			http.Error(w, "Failed to add guest", http.StatusInternalServerError)
@@ -137,7 +129,7 @@ func HandleDeleteGuest() http.Handler {
 			return
 		}
 
-		invitationID := session.InvitationID
+		email := session.InvitationEmail
 
 		// Extract guest ID from URL
 		// Expected format: /rsvp/guest/123
@@ -159,7 +151,7 @@ func HandleDeleteGuest() http.Handler {
 		// Both should be handled the same way
 
 		// Delete the guest
-		err = models.DeleteGuest(guestID, invitationID)
+		err = models.DeleteGuest(guestID, email)
 		if err != nil {
 			log.Printf("Error deleting guest: %v", err)
 			http.Error(w, "Failed to delete guest", http.StatusInternalServerError)
@@ -184,7 +176,7 @@ func HandleSubmitRSVP() http.Handler {
 			return
 		}
 
-		invitationID := session.InvitationID
+		email := session.InvitationEmail
 
 		// Parse form data
 		if err := r.ParseForm(); err != nil {
@@ -218,7 +210,7 @@ func HandleSubmitRSVP() http.Handler {
 
 			// Update guest name if needed
 			if guestName != "" {
-				err := models.UpdateGuestName(guestID, invitationID, guestName)
+				err := models.UpdateGuestName(guestID, email, guestName)
 				if err != nil {
 					log.Printf("Error updating guest name for guest %d: %v", guestID, err)
 				}
@@ -236,15 +228,8 @@ func HandleSubmitRSVP() http.Handler {
 			}
 		}
 
-		// Get family name for success message
-		familyName, err := models.GetInvitationName(invitationID)
-		if err != nil {
-			log.Printf("Error fetching family name: %v", err)
-			familyName = "your party" // Default if not found
-		}
-
 		// Return success message
-		templates.SuccessMessage(familyName, r).Render(r.Context(), w)
+		templates.SuccessMessage("your party", r).Render(r.Context(), w)
 	}))
 }
 
@@ -258,25 +243,17 @@ func HandleRSVPStatus() http.Handler {
 			return
 		}
 
-		invitationID := session.InvitationID
+		email := session.InvitationEmail
 
 		// Get guest data
-		guests, err := models.GetGuestsByInvitation(invitationID)
+		guests, err := models.GetGuestsByInvitation(email)
 		if err != nil {
 			log.Printf("Error fetching guests: %v", err)
 			http.Error(w, "Failed to load guest data", http.StatusInternalServerError)
 			return
 		}
 
-		// Get family name
-		familyName, err := models.GetInvitationName(invitationID)
-		if err != nil {
-			log.Printf("Error fetching family name: %v", err)
-			http.Error(w, "Failed to load invitation data", http.StatusInternalServerError)
-			return
-		}
-
 		// Render RSVP status page
-		templates.RSVPStatus(familyName, guests, r).Render(r.Context(), w)
+		templates.RSVPStatus(email, guests, r).Render(r.Context(), w)
 	}))
 }

@@ -47,18 +47,18 @@ func setupSchema() error {
 	// Create tables if they don't exist
 	_, err := DB.Exec(`
 		CREATE TABLE IF NOT EXISTS invitations (
-			id TEXT PRIMARY KEY,
-			family_name TEXT NOT NULL,
-			max_guests INTEGER NOT NULL,
-			email TEXT,
+			email TEXT PRIMARY KEY,
+			max_guests INTEGER NOT NULL DEFAULT 6,
 			phone TEXT,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			last_access TIMESTAMP
+			last_access TIMESTAMP,
+			approved BOOLEAN DEFAULT FALSE,
+			registration_ip TEXT
 		);
 		
 		CREATE TABLE IF NOT EXISTS guests (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			invitation_id TEXT REFERENCES invitations(id),
+			invitation_email TEXT REFERENCES invitations(email),
 			name TEXT NOT NULL,
 			attending BOOLEAN DEFAULT NULL,
 			meal_preference TEXT,
@@ -68,7 +68,7 @@ func setupSchema() error {
 		
 		CREATE TABLE IF NOT EXISTS sessions (
 			id TEXT PRIMARY KEY,
-			invitation_id TEXT REFERENCES invitations(id),
+			invitation_email TEXT REFERENCES invitations(email),
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			expires_at TIMESTAMP,
 			ip_address_hash TEXT

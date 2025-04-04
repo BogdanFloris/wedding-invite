@@ -21,60 +21,90 @@ const (
 
 // Errors
 var (
-	ErrInvalidCode    = errors.New("invalid invitation code")
+	ErrInvalidEmail   = errors.New("invalid email address")
 	ErrSessionExpired = errors.New("session expired")
 	ErrInternalError  = errors.New("an internal error occurred")
 )
 
 // Session represents an authenticated session
 type Session struct {
-	ID           string
-	InvitationID string
-	CreatedAt    time.Time
-	ExpiresAt    time.Time
+	ID              string
+	InvitationEmail string
+	CreatedAt       time.Time
+	ExpiresAt       time.Time
 }
 
 // Invitation represents invitation details
 type Invitation struct {
-	ID         string
-	FamilyName string
+	Email      string
 	MaxGuests  int
-	Email      sql.NullString
 	Phone      sql.NullString
 	CreatedAt  time.Time
 	LastAccess sql.NullTime
+	Approved   bool
 }
 
-// ValidateInvitationCode checks if an invitation code is valid
-func ValidateInvitationCode(code string, r *http.Request) (*Invitation, error) {
-	// Clean the code (remove spaces, case insensitive)
-	code = strings.TrimSpace(strings.ToLower(code))
+// ValidateEmail checks if an email is valid and creates a new invitation if it doesn't exist
+func ValidateEmail(email string, r *http.Request) (*Invitation, error) {
+	// Clean the email (remove spaces, convert to lowercase)
+	email = strings.TrimSpace(strings.ToLower(email))
 
-	// Check if code meets minimum requirements
-	if len(code) < 8 {
-		return nil, ErrInvalidCode
+	// Basic email validation
+	if len(email) < 5 || !strings.Contains(email, "@") || !strings.Contains(email, ".") {
+		return nil, ErrInvalidEmail
 	}
 
 	// Query the database for the invitation
 	var invitation Invitation
 	err := db.DB.QueryRow(`
-		SELECT id, family_name, max_guests, email, phone, created_at, last_access
+		SELECT email, max_guests, phone, created_at, last_access, approved
 		FROM invitations
-		WHERE id = ?
-	`, code).Scan(
-		&invitation.ID,
-		&invitation.FamilyName,
-		&invitation.MaxGuests,
+		WHERE email = ?
+	`, email).Scan(
 		&invitation.Email,
+		&invitation.MaxGuests,
 		&invitation.Phone,
 		&invitation.CreatedAt,
 		&invitation.LastAccess,
+		&invitation.Approved,
 	)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, ErrInvalidCode
+
+	// If email not found, create a new invitation
+	if err == sql.ErrNoRows {
+		// Get IP address for registration tracking
+		ipAddress := getIP(r)
+		
+		// Create new invitation
+		_, err = db.DB.Exec(`
+			INSERT INTO invitations (email, registration_ip, max_guests)
+			VALUES (?, ?, 6)
+		`, email, ipAddress)
+		
+		if err != nil {
+			log.Printf("Error creating new invitation: %v", err)
+			return nil, ErrInternalError
 		}
-		log.Printf("Database error validating invitation code: %v", err)
+		
+		// Now retrieve the newly created invitation
+		err = db.DB.QueryRow(`
+			SELECT email, max_guests, phone, created_at, last_access, approved
+			FROM invitations
+			WHERE email = ?
+		`, email).Scan(
+			&invitation.Email,
+			&invitation.MaxGuests,
+			&invitation.Phone,
+			&invitation.CreatedAt,
+			&invitation.LastAccess,
+			&invitation.Approved,
+		)
+		
+		if err != nil {
+			log.Printf("Error retrieving new invitation: %v", err)
+			return nil, ErrInternalError
+		}
+	} else if err != nil {
+		log.Printf("Database error validating email: %v", err)
 		return nil, ErrInternalError
 	}
 
@@ -82,8 +112,8 @@ func ValidateInvitationCode(code string, r *http.Request) (*Invitation, error) {
 	_, err = db.DB.Exec(`
 		UPDATE invitations
 		SET last_access = CURRENT_TIMESTAMP
-		WHERE id = ?
-	`, code)
+		WHERE email = ?
+	`, email)
 	if err != nil {
 		log.Printf("Error updating last access time: %v", err)
 		// Non-fatal error, continue with authentication
@@ -107,9 +137,9 @@ func CreateSession(invitation *Invitation, r *http.Request) (*Session, error) {
 	// Create session in database
 	ipHash := security.HashIPAddress(getIP(r))
 	_, err = db.DB.Exec(`
-		INSERT INTO sessions (id, invitation_id, created_at, expires_at, ip_address_hash)
+		INSERT INTO sessions (id, invitation_email, created_at, expires_at, ip_address_hash)
 		VALUES (?, ?, ?, ?, ?)
-	`, sessionID, invitation.ID, now, expiresAt, ipHash)
+	`, sessionID, invitation.Email, now, expiresAt, ipHash)
 	if err != nil {
 		log.Printf("Error creating session: %v", err)
 		return nil, ErrInternalError
@@ -117,10 +147,10 @@ func CreateSession(invitation *Invitation, r *http.Request) (*Session, error) {
 
 	// Return the session
 	return &Session{
-		ID:           sessionID,
-		InvitationID: invitation.ID,
-		CreatedAt:    now,
-		ExpiresAt:    expiresAt,
+		ID:              sessionID,
+		InvitationEmail: invitation.Email,
+		CreatedAt:       now,
+		ExpiresAt:       expiresAt,
 	}, nil
 }
 
@@ -128,12 +158,12 @@ func CreateSession(invitation *Invitation, r *http.Request) (*Session, error) {
 func GetSession(sessionID string) (*Session, error) {
 	var session Session
 	err := db.DB.QueryRow(`
-		SELECT id, invitation_id, created_at, expires_at
+		SELECT id, invitation_email, created_at, expires_at
 		FROM sessions
 		WHERE id = ?
 	`, sessionID).Scan(
 		&session.ID,
-		&session.InvitationID,
+		&session.InvitationEmail,
 		&session.CreatedAt,
 		&session.ExpiresAt,
 	)
