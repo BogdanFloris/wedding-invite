@@ -74,7 +74,9 @@
       "details": "Details",
       "edit_rsvp": "Edit RSVP",
       "attending": "Attending",
-      "not_attending": "Not Attending"
+      "not_attending": "Not Attending",
+      "not_responded": "Not Responded",
+      "declined_message": "You indicated that you will not be attending the wedding."
     },
     "form": {
       "question": "Will your party be attending?",
@@ -93,7 +95,8 @@
         "gluten_free": "Gluten Free",
         "lactose_free": "Lactose Free",
         "child": "Child",
-        "none": "No preference"
+        "none": "No preference",
+        "not_selected": "Not selected"
       },
       "dietary_notes": "Additional dietary notes",
       "dietary_notes_placeholder": "Any allergies or special requirements",

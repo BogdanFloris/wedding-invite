@@ -74,7 +74,9 @@
       "details": "Detalii",
       "edit_rsvp": "Editați confirmarea",
       "attending": "Participă",
-      "not_attending": "Nu participă"
+      "not_attending": "Nu participă",
+      "not_responded": "Fără răspuns",
+      "declined_message": "Ați indicat că nu veți participa la nuntă."
     },
     "form": {
       "initialText": "Vă rugăm să introduceți numele dumneavoastră și ale oaspeților suplimentari în formularul de mai jos.",
@@ -93,7 +95,8 @@
         "gluten_free": "Fără Gluten",
         "lactose_free": "Fără Lactoză",
         "child": "Copil",
-        "none": "Nicio preferință"
+        "none": "Nicio preferință",
+        "not_selected": "Neselectat"
       },
       "dietary_notes": "Note dietetice adiționale",
       "dietary_notes_placeholder": "Orice alergii sau preferințe speciale",

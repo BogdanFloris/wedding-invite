@@ -289,8 +289,8 @@ func HandleSubmitRSVP() http.Handler {
 			}
 		}
 
-		// Return success message
-		templates.SuccessMessage("your party", r).Render(r.Context(), w)
+		// Return success message with the email address
+		templates.SuccessMessage(email, r).Render(r.Context(), w)
 	}))
 }
 
