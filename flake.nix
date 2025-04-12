@@ -15,7 +15,7 @@
         templOverlay = system: templ.packages.${system}.templ;
       in {
         devShells.default = pkgs.mkShell {
-          packages = [ pkgs.libcap pkgs.go pkgs.gcc pkgs.flyctl ];
+          packages = [ pkgs.libcap pkgs.go pkgs.gcc pkgs.flyctl pkgs.golines ];
           buildInputs = [ (templOverlay system) ];
         };
       });
