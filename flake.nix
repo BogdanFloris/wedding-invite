@@ -23,6 +23,7 @@
             pkgs.golines
             pkgs.air
             pkgs.sqlite
+            pkgs.imagemagick
           ];
           buildInputs = [ (templOverlay system) ];
         };
