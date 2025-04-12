@@ -10,7 +10,7 @@
     "form_text_two": "Enter your email address to access all the wedding details:",
     "email_label": "Email Address",
     "email_placeholder": "your.email@example.com",
-    "submit": "Access your invitation",
+    "submit": "Access invitation",
     "errors": {
       "invalid_email": "Invalid email address. Please check and try again.",
       "auth_required": "Please enter your email to continue.",
@@ -18,9 +18,11 @@
     }
   },
   "wedding": {
-    "title": "Ramona & Bogdan",
-    "subtitle": "Join us for our special day!",
+    "title": "Meet us at the palace!",
+    "subtitle": "Ramona & Bogdan",
+    "main_text": "We are delighted to have you join us on our special day!",
     "date": "October 4, 2025",
+    "countdown_prefix": "Countdown:",
     "time": "at 6:00 PM",
     "location": {
       "venue": "Palatul Ghica Tei",
@@ -40,13 +42,17 @@
   },
   "ceremony": {
     "title": "Ceremony",
-    "description": "The ceremony will be held at Biserica Icoanei, Str. Icoanei nr. 12, sector 2, Bucureşti, Romania",
-    "time": "2:00 PM - 3:00 PM"
+    "description": "We will say \"I DO\" at the altar in Biserica Icoanei",
+    "address": "Str. Icoanei nr. 12, Bucureşti, Romania",
+    "time": "2:00 PM - 3:00 PM",
+    "venue": "Biserica Icoanei"
   },
   "reception": {
     "title": "Wedding Party",
-    "description": "Join us for dinner, dancing, and celebration following the ceremony.",
+    "description": "Join us for dinner, dancing, and celebration at Palatul Ghica Tei",
+    "address": "Str. Doamna Ghica 3-5, Bucharest, Romania",
     "time": "6:00 PM - Morning",
+    "venue": "Palatul Ghica Tei",
     "dinner": "Dinner & Dancing"
   },
   "navigation": {

@@ -9,33 +9,37 @@ import (
 templ Wedding(email string, hasRSVP bool, r *http.Request) {
 	@AuthBase("Our Wedding", r) {
 		<div class="bg-white rounded-lg shadow-md p-8 mb-8">
-			<div class="text-center mb-8">
-				<div class="mx-auto w-48 h-48 rounded-full overflow-hidden mb-6 border-4 border-primary-light shadow-md relative">
-					<div class="absolute inset-0 bg-gradient-to-b from-primary-light/30 to-primary/30 mix-blend-overlay"></div>
+			<!-- Large main photo -->
+			<div class="mb-8 text-center">
+				<div class="relative w-full h-72 md:h-96 mx-auto mb-6 shadow-lg rounded-lg overflow-hidden">
 					<img
-						src="/static/images/optimized/Couples_Ramona_Bogdan_002.jpg"
+						src="/static/images/Couples_Ramona_Bogdan_002.jpg"
 						alt="Ramona and Bogdan"
-						class="w-full h-full object-cover object-center scale-[1.15] filter saturate-[0.9] contrast-[1.05]"
-						style="object-position: 50% 40%;"
-						width="800"
+						class="w-full h-full object-cover object-center"
+						loading="lazy"
+						width="1200"
 						height="800"
 					/>
 				</div>
-				<h1 class="text-4xl font-bold text-primary-dark mb-3">{ i18n.T(middleware.GetLanguage(r), "wedding.title") }</h1>
-				<p class="text-lg text-gray-600">{ i18n.T(middleware.GetLanguage(r), "wedding.subtitle") }</p>
-				<div class="mt-6">
+			</div>
+			<div class="text-center mb-8">
+				<h1 class="text-5xl font-bold text-primary-dark mb-3 calligraphy">{ i18n.T(middleware.GetLanguage(r), "wedding.title") }</h1>
+				<p class="text-3xl text-gray-700 calligraphy">{ i18n.T(middleware.GetLanguage(r), "wedding.subtitle") }</p>
+				<p class="text-lg text-gray-600 mt-4">{ i18n.T(middleware.GetLanguage(r), "wedding.main_text") }</p>
+				<div class="calligraphy text-4xl font-bold text-primary-dark mt-6 mb-6">
+					{ i18n.T(middleware.GetLanguage(r), "wedding.date") }
+				</div>
+				<p class="text-md text-gray-600 mb-4">{ i18n.T(middleware.GetLanguage(r), "wedding.countdown_prefix") }</p>
+				<div class="mt-2 mb-4">
 					@countdownTimer(r)
 				</div>
 			</div>
 			<div class="mb-8 text-center">
-				<div class="text-3xl font-bold text-primary-dark mb-8 py-3 px-6 inline-block transform hover:scale-105 transition-transform duration-300">
-					{ i18n.T(middleware.GetLanguage(r), "wedding.date") }
-				</div>
 				<div class="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto mb-6">
 					<div class="relative w-[30%] min-w-[150px] h-40 -rotate-3 transform hover:rotate-0 transition-transform duration-300 shadow-md z-10">
 						<div class="absolute inset-0 bg-primary-light/20 rounded-lg overflow-hidden">
 							<img
-								src="/static/images/optimized/Couple_Sess_Ramona_Bogdan-84.jpg"
+								src="/static/images/Couple_Sess_Ramona_Bogdan-215.jpg"
 								alt="Ramona and Bogdan"
 								class="w-full h-full object-cover rounded-lg"
 								loading="lazy"
@@ -70,7 +74,7 @@ templ Wedding(email string, hasRSVP bool, r *http.Request) {
 					</div>
 				</div>
 			</div>
-			<div class="text-center">
+			<div class="text-center mb-10">
 				if hasRSVP {
 					<a
 						href="/rsvp/status"
@@ -87,32 +91,50 @@ templ Wedding(email string, hasRSVP bool, r *http.Request) {
 					</a>
 				}
 			</div>
-		</div>
-		<!-- Event Details -->
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-			<div class="bg-white rounded-lg shadow-md p-6">
-				<h2 class="text-2xl font-semibold mb-4 text-primary-dark">{ i18n.T(middleware.GetLanguage(r), "ceremony.title") }</h2>
-				<p class="mb-4">{ i18n.T(middleware.GetLanguage(r), "ceremony.description") }</p>
-				<ul class="space-y-2 text-gray-600">
-					<li class="flex items-center">
-						<span class="mr-2">🕓</span> { i18n.T(middleware.GetLanguage(r), "ceremony.time") }
-					</li>
-					<li class="flex items-center">
-						<span class="mr-2">📍</span> <a href="https://maps.google.com/?q=Biserica+Icoanei+Bucuresti" target="_blank" class="text-primary hover:text-primary-dark transition duration-300 underline">Biserica Icoanei</a>
-					</li>
-				</ul>
-			</div>
-			<div class="bg-white rounded-lg shadow-md p-6">
-				<h2 class="text-2xl font-semibold mb-4 text-primary-dark">{ i18n.T(middleware.GetLanguage(r), "reception.title") }</h2>
-				<p class="mb-4">{ i18n.T(middleware.GetLanguage(r), "reception.description") }</p>
-				<ul class="space-y-2 text-gray-600">
-					<li class="flex items-center">
-						<span class="mr-2">🕓</span> { i18n.T(middleware.GetLanguage(r), "reception.time") }
-					</li>
-					<li class="flex items-center">
-						<span class="mr-2">📍</span> <a href="https://maps.google.com/?q=Palatul+Ghica+Tei" target="_blank" class="text-primary hover:text-primary-dark transition duration-300 underline">Palatul Ghica Tei</a>
-					</li>
-				</ul>
+			<!-- Event Details -->
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+				<!-- Ceremony -->
+				<div class="bg-white rounded-lg shadow-md p-6">
+					<h2 class="text-2xl font-semibold mb-3 text-primary-dark">{ i18n.T(middleware.GetLanguage(r), "ceremony.title") }</h2>
+					<p class="mb-4">{ i18n.T(middleware.GetLanguage(r), "ceremony.description") }</p>
+					<p class="mb-5 text-gray-600">{ i18n.T(middleware.GetLanguage(r), "ceremony.address") }</p>
+					<ul class="space-y-2 text-gray-600">
+						<li class="flex items-center">
+							<span class="mr-2">🕓</span> { i18n.T(middleware.GetLanguage(r), "ceremony.time") }
+						</li>
+						<li class="flex items-center">
+							<span class="mr-2">📍</span>
+							<a
+								href="https://maps.google.com/?q=Biserica+Icoanei+Bucuresti"
+								target="_blank"
+								class="text-primary hover:text-primary-dark transition duration-300 underline"
+							>
+								{ i18n.T(middleware.GetLanguage(r), "ceremony.venue") }
+							</a>
+						</li>
+					</ul>
+				</div>
+				<!-- Reception -->
+				<div class="bg-white rounded-lg shadow-md p-6">
+					<h2 class="text-2xl font-semibold mb-3 text-primary-dark">{ i18n.T(middleware.GetLanguage(r), "reception.title") }</h2>
+					<p class="mb-4">{ i18n.T(middleware.GetLanguage(r), "reception.description") }</p>
+					<p class="mb-5 text-gray-600">{ i18n.T(middleware.GetLanguage(r), "reception.address") }</p>
+					<ul class="space-y-2 text-gray-600">
+						<li class="flex items-center">
+							<span class="mr-2">🕓</span> { i18n.T(middleware.GetLanguage(r), "reception.time") }
+						</li>
+						<li class="flex items-center">
+							<span class="mr-2">📍</span>
+							<a
+								href="https://maps.google.com/?q=Palatul+Ghica+Tei"
+								target="_blank"
+								class="text-primary hover:text-primary-dark transition duration-300 underline"
+							>
+								{ i18n.T(middleware.GetLanguage(r), "reception.venue") }
+							</a>
+						</li>
+					</ul>
+				</div>
 			</div>
 		</div>
 	}

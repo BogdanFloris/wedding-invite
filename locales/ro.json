@@ -18,9 +18,11 @@
     }
   },
   "wedding": {
-    "title": "Ramona & Bogdan",
-    "subtitle": "Alăturați-vă nouă în ziua noastră specială!",
+    "title": "Meet us at the palace!",
+    "subtitle": "Ramona & Bogdan",
+    "main_text": "Suntem bucuroși să vă avem alături în ziua noastră specială!",
     "date": "4 octombrie 2025",
+    "countdown_prefix": "Au mai rămas:",
     "time": "la ora 18:00",
     "location": {
       "venue": "Palatul Ghica Tei",
@@ -39,14 +41,18 @@
     }
   },
   "ceremony": {
-    "title": "Cununia Religioasa",
-    "description": "Cununia religioasa va avea loc la Biserica Icoanei, Str. Icoanei nr. 12, sector 2, Bucureşti, Romania",
-    "time": "14:00 - 15:00"
+    "title": "Cununia Religioasă",
+    "description": "Vom spune \"DA\" în fața altarului la Biserica Icoanei",
+    "address": "Str. Icoanei nr. 12, Bucureşti, Romania",
+    "time": "14:00 - 15:00",
+    "venue": "Biserica Icoanei"
   },
   "reception": {
-    "title": "Petrecere",
-    "description": "Alăturați-vă nouă pentru cină, dans și sărbătoare la Palatul Ghica Tei, Str. Doamna Ghica 3-5, București, România",
+    "title": "Petrecerea",
+    "description": "Vă așteptăm pentru cină, dans și sărbătoare la Palatul Ghica Tei",
+    "address": "Str. Doamna Ghica 3-5, București, România",
     "time": "18:00 - Dimineața",
+    "venue": "Palatul Ghica Tei",
     "dinner": "Cină & Dans"
   },
   "navigation": {
