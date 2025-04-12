@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -8,129 +9,6 @@ import (
 	"wedding-invite/pkg/middleware"
 	"wedding-invite/pkg/models"
 )
-
-// RSVPFormContent renders just the form content for HTMX updates
-templ RSVPFormContent(email, invitationEmail string, guests []models.Guest, canAddGuest bool, maxGuests int, mealOptions []string, r *http.Request) {
-	<form id="rsvp-form" hx-post="/rsvp/submit" hx-target="#rsvp-container" hx-swap="innerHTML">
-		<input type="hidden" name="invitation_id" value={ invitationEmail }/>
-		<input type="hidden" name="max_guests" value={ strconv.Itoa(maxGuests) }/>
-		<!-- Attendance choice for the whole party - always shown -->
-		<div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
-			<h3 class="text-xl font-semibold text-gray-800 mb-4">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.question") }</h3>
-			<div class="flex space-x-6">
-				<label class="inline-flex items-center">
-					<input
-						type="radio"
-						name="party_attending"
-						value="yes"
-						class="form-radio h-5 w-5 text-primary"
-						required="required"
-						if anyGuestsAttending(guests) {
-							checked
-						}
-						onclick="document.getElementById('guests-section').style.display = 'block'; updateSubmitButton();"
-					/>
-					<span class="ml-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.attending_yes") }</span>
-				</label>
-				<label class="inline-flex items-center">
-					<input
-						type="radio"
-						name="party_attending"
-						value="no"
-						class="form-radio h-5 w-5 text-red-500"
-						required="required"
-						if allGuestsNotAttending(guests) {
-							checked
-						}
-						onclick="document.getElementById('guests-section').style.display = 'none'; document.getElementById('submit-button').disabled = false;"
-					/>
-					<span class="ml-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.attending_no") }</span>
-				</label>
-			</div>
-		</div>
-		
-		<!-- Guest Information Section - only shown when attending is Yes -->
-		<div id="guests-section" class="mb-6">
-			<div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-8">
-				<p class="text-center text-yellow-800">
-					{ i18n.T(middleware.GetLanguage(r), "rsvp.form.initialText") }
-				</p>
-			</div>
-			
-			if len(guests) > 0 {
-				<div class="flex justify-between items-center mb-4">
-					<h3 class="text-lg font-semibold text-gray-700">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.group_title") }</h3>
-				</div>
-				<div id="guests-container" class="space-y-4">
-					for i, guest := range guests {
-						@GuestCard(guest, mealOptions, i, r)
-					}
-				</div>
-			}
-			
-			if canAddGuest && len(guests) < maxGuests {
-				<div class="mt-6 text-center">
-					<button
-						hx-post="/rsvp/add-guest"
-						hx-target="#rsvp-container"
-						hx-swap="innerHTML"
-						type="button"
-						class="inline-flex items-center text-primary hover:text-primary-dark font-medium py-2 px-4 rounded-md transition duration-300 border border-primary hover:border-primary-dark"
-					>
-						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-							<path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path>
-						</svg>
-						{ i18n.T(middleware.GetLanguage(r), "rsvp.form.add_guest") }
-					</button>
-				</div>
-			}
-		</div>
-		
-		<div class="mt-8 flex justify-center">
-			<button
-				type="submit"
-				class="bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300"
-				id="submit-button"
-			>
-				{ i18n.T(middleware.GetLanguage(r), "rsvp.form.submit") }
-			</button>
-		</div>
-	</form>
-	
-	<script>
-		// JavaScript to handle showing/hiding guest section and enabling/disabling submit button
-		document.addEventListener('DOMContentLoaded', function() {
-			const yesRadio = document.querySelector('input[name="party_attending"][value="yes"]');
-			const noRadio = document.querySelector('input[name="party_attending"][value="no"]');
-			const guestsSection = document.getElementById('guests-section');
-			
-			// Set initial state
-			if (yesRadio.checked) {
-				guestsSection.style.display = 'block';
-			} else if (noRadio.checked) {
-				guestsSection.style.display = 'none';
-			} else {
-				// Default state if nothing is checked
-				guestsSection.style.display = 'none';
-			}
-			
-			// Update submit button
-			updateSubmitButton();
-		});
-		
-		function updateSubmitButton() {
-			const isAttending = document.querySelector('input[name="party_attending"][value="yes"]').checked;
-			const guestCount = document.querySelectorAll('input[name="guest_ids[]"]').length;
-			const submitButton = document.getElementById('submit-button');
-			
-			if (isAttending) {
-				submitButton.disabled = guestCount === 0;
-			} else {
-				submitButton.disabled = false;
-			}
-		}
-	</script>
-}
 
 // RSVPForm renders the RSVP form
 templ RSVPForm(email, invitationEmail string, guests []models.Guest, canAddGuest bool, maxGuests int, mealOptions []string, successMsg string, r *http.Request) {
@@ -166,82 +44,397 @@ templ RSVPForm(email, invitationEmail string, guests []models.Guest, canAddGuest
 	}
 }
 
-// GuestCard renders a card with guest information
-templ GuestCard(guest models.Guest, mealOptions []string, index int, r *http.Request) {
-	<div id={ "guest-" + strconv.FormatInt(guest.ID, 10) } class="bg-gray-50 p-5 rounded-lg border border-gray-200">
-		<div class="flex justify-between items-start mb-4">
-			<div class="flex items-center">
-				<span class="bg-primary text-white rounded-full w-7 h-7 flex items-center justify-center mr-3">
-					{ strconv.Itoa(index + 1) }
-				</span>
-				<h3 class="text-lg font-semibold text-gray-800">
-					if guest.Name == "" {
-						<span class="italic text-gray-500">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.guest_placeholder") }</span>
-					} else {
-						{ guest.Name }
-					}
-				</h3>
+// RSVPFormContent renders just the form content
+templ RSVPFormContent(email, invitationEmail string, guests []models.Guest, canAddGuest bool, maxGuests int, mealOptions []string, r *http.Request) {
+	<!-- Store max guests value -->
+	<div id="max-guests-data" data-max-guests={ strconv.Itoa(maxGuests) } class="hidden"></div>
+	<form id="rsvp-form" hx-post="/rsvp/submit" hx-target="#rsvp-container" hx-swap="innerHTML">
+		<input type="hidden" name="invitation_id" value={ invitationEmail }/>
+		<input type="hidden" name="max_guests" value={ strconv.Itoa(maxGuests) }/>
+		<!-- Attendance choice for the whole party - always shown -->
+		<div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
+			<h3 class="text-xl font-semibold text-gray-800 mb-4">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.question") }</h3>
+			<div class="flex space-x-6">
+				<label class="inline-flex items-center">
+					<input
+						type="radio"
+						name="party_attending"
+						value="yes"
+						class="form-radio h-5 w-5 text-primary"
+						required="required"
+						if anyGuestsAttending(guests) {
+							checked
+						}
+						id="party-attending-yes"
+					/>
+					<span class="ml-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.attending_yes") }</span>
+				</label>
+				<label class="inline-flex items-center">
+					<input
+						type="radio"
+						name="party_attending"
+						value="no"
+						class="form-radio h-5 w-5 text-red-500"
+						required="required"
+						if allGuestsNotAttending(guests) {
+							checked
+						}
+						id="party-attending-no"
+					/>
+					<span class="ml-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.attending_no") }</span>
+				</label>
 			</div>
+		</div>
+		<!-- Guest Information Section - only shown when attending is Yes -->
+		<div id="guests-section" class="mb-6" style={ cond(anyGuestsAttending(guests), "display: block;", "display: none;") }>
+			<div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-8">
+				<p class="text-center text-yellow-800">
+					{ i18n.T(middleware.GetLanguage(r), "rsvp.form.initialText") }
+				</p>
+			</div>
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-lg font-semibold text-gray-700">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.group_title") }</h3>
+			</div>
+			<!-- Container for all guests - will be manipulated by JavaScript -->
+			<div id="guests-container" class="space-y-4">
+				for i, guest := range guests {
+					@GuestCard(guest, mealOptions, i, r)
+				}
+			</div>
+			<div id="add-guest-button-container" class="mt-6 text-center">
+				<button
+					type="button"
+					id="add-guest-button"
+					class={ cond(len(guests) >= maxGuests, "hidden", "inline-flex items-center text-primary hover:text-primary-dark font-medium py-2 px-4 rounded-md transition duration-300 border border-primary hover:border-primary-dark") }
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+						<path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path>
+					</svg>
+					{ i18n.T(middleware.GetLanguage(r), "rsvp.form.add_guest") }
+				</button>
+				<p id="max-guests-message" class={ cond(len(guests) >= maxGuests, "text-gray-500 text-sm", "text-gray-500 text-sm hidden") }>
+					{ formatMaxGuestsMessage(middleware.GetLanguage(r), "rsvp.form.max_guests", maxGuests) }
+				</p>
+			</div>
+		</div>
+		<div class="mt-8 flex justify-center">
 			<button
-				type="button"
-				hx-post={ "/rsvp/guest/" + strconv.FormatInt(guest.ID, 10) }
-				hx-target="#rsvp-container"
-				hx-swap="innerHTML"
-				class="text-red-500 hover:text-red-700 text-sm"
-				onclick="setTimeout(updateSubmitButton, 100);"
+				type="submit"
+				class="bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300"
+				id="submit-button"
+				if !(allGuestsNotAttending(guests) || (anyGuestsAttending(guests) && len(guests) > 0)) {
+					disabled
+				}
 			>
-				{ i18n.T(middleware.GetLanguage(r), "rsvp.form.remove") }
+				{ i18n.T(middleware.GetLanguage(r), "rsvp.form.submit") }
 			</button>
 		</div>
-		<!-- Hidden input to track this guest -->
-		<input type="hidden" name="guest_ids[]" value={ strconv.FormatInt(guest.ID, 10) }/>
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-			<div>
-				<label class="block text-gray-700 text-sm font-medium mb-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.guest_placeholder") }</label>
-				<input
-					type="text"
-					name={ "guest_name_" + strconv.FormatInt(guest.ID, 10) }
-					value={ guest.Name }
-					class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-transparent"
-					required="required"
-				/>
-			</div>
-			<div>
-				<label class="block text-gray-700 text-sm font-medium mb-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.meal_preference") }</label>
-				<select
-					name={ "guest_meal_" + strconv.FormatInt(guest.ID, 10) }
-					class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-transparent"
+	</form>
+	<!-- Guest card template - hidden, will be cloned by JavaScript -->
+	<template id="guest-card-template">
+		<div class="guest-card bg-gray-50 p-5 rounded-lg border border-gray-200" data-guest-id="">
+			<div class="flex justify-between items-start mb-4">
+				<div class="flex items-center">
+					<span class="guest-counter bg-primary text-white rounded-full w-7 h-7 flex items-center justify-center mr-3">
+						0
+					</span>
+					<h3 class="text-lg font-semibold text-gray-800">
+						<span class="italic text-gray-500 guest-placeholder">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.guest_placeholder") }</span>
+						<span class="guest-name hidden"></span>
+					</h3>
+				</div>
+				<button
+					type="button"
+					class="text-red-500 hover:text-red-700 text-sm remove-guest-button"
+					data-confirm-message={ i18n.T(middleware.GetLanguage(r), "rsvp.form.remove_confirm") }
 				>
-					for _, meal := range mealOptions {
-						<option
-							value={ meal }
-							if guest.MealPreference.Valid && guest.MealPreference.String == meal {
-								selected
-							}
-						>
-							{ getMealTranslation(middleware.GetLanguage(r), meal) }
-						</option>
-					}
-				</select>
+					{ i18n.T(middleware.GetLanguage(r), "rsvp.form.remove") }
+				</button>
+			</div>
+			<input type="hidden" name="guest_ids[]" value="" class="guest-id-input"/>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+				<div>
+					<label class="block text-gray-700 text-sm font-medium mb-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.guest_placeholder") }</label>
+					<input
+						type="text"
+						name="guest_name_"
+						value=""
+						class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-transparent guest-name-input"
+						required="required"
+					/>
+				</div>
+				<div>
+					<label class="block text-gray-700 text-sm font-medium mb-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.meal_preference") }</label>
+					<select
+						name="guest_meal_"
+						class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-transparent guest-meal-input"
+					>
+						for _, meal := range mealOptions {
+							<option value={ meal }>
+								{ getMealTranslation(middleware.GetLanguage(r), meal) }
+							</option>
+						}
+					</select>
+				</div>
+			</div>
+			<div class="mt-4">
+				<label class="block text-gray-700 text-sm font-medium mb-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.dietary_notes") }</label>
+				<textarea
+					name="guest_dietary_"
+					rows="2"
+					class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-transparent guest-dietary-input"
+					placeholder={ i18n.T(middleware.GetLanguage(r), "rsvp.form.dietary_notes_placeholder") }
+				></textarea>
 			</div>
 		</div>
-		<div class="mt-4">
-			<label class="block text-gray-700 text-sm font-medium mb-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.dietary_notes") }</label>
-			<textarea
-				name={ "guest_dietary_" + strconv.FormatInt(guest.ID, 10) }
-				rows="2"
-				class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-transparent"
-				placeholder={ i18n.T(middleware.GetLanguage(r), "rsvp.form.dietary_notes_placeholder") }
-			>
-				if guest.DietaryRestrictions.Valid {
-					{ guest.DietaryRestrictions.String }
+	</template>
+	<script>
+		// RSVP State Manager - handles all guest interactions
+		const RSVP = {
+			maxGuests: 0, // Will be set during initialization
+			guests: [],
+			nextTempId: -1,
+			
+			// Initialize the system
+			init: function() {
+				// Get max guests value from data attribute
+				const maxGuestsEl = document.getElementById('max-guests-data');
+				if (maxGuestsEl && maxGuestsEl.dataset.maxGuests) {
+					this.maxGuests = parseInt(maxGuestsEl.dataset.maxGuests, 10);
 				}
-			</textarea>
-		</div>
-	</div>
+				
+				// Start with empty guests for now
+				// Load stored guests from DOM
+				this.guests = [];
+				const guestCards = document.querySelectorAll('.guest-card');
+				if (guestCards && guestCards.length > 0) {
+					guestCards.forEach((card, index) => {
+						const guestId = parseInt(card.dataset.guestId || "0", 10);
+						const guestName = card.querySelector('.guest-name')?.textContent || "";
+						
+						// Create guest object
+						const guest = {
+							id: guestId,
+							invitationEmail: document.querySelector('input[name="invitation_id"]').value,
+							name: guestName, 
+							attending: { valid: true, bool: true },
+							mealPreference: { valid: false, string: "" },
+							dietaryRestrictions: { valid: false, string: "" }
+						};
+						
+						this.guests.push(guest);
+					});
+				}
+				
+				// Set up event listeners for guest removal
+				document.querySelectorAll('.remove-guest-button').forEach(btn => {
+					btn.addEventListener('click', this.handleRemoveGuest.bind(this));
+				});
+				
+				// Add Guest button event listener
+				const addGuestButton = document.getElementById('add-guest-button');
+				if (addGuestButton) {
+					addGuestButton.addEventListener('click', this.addGuest.bind(this));
+				}
+				
+				// Radio button event listeners
+				const yesRadio = document.getElementById('party-attending-yes');
+				if (yesRadio) {
+					yesRadio.addEventListener('change', function() {
+						document.getElementById('guests-section').style.display = 'block';
+						document.getElementById('add-guest-button').classList.remove('hidden');
+						document.getElementById('max-guests-message').classList.add('hidden');
+						document.getElementById('submit-button').disabled = 
+							(document.querySelectorAll('input[name="guest_ids[]"]').length === 0);
+					});
+				}
+				
+				const noRadio = document.getElementById('party-attending-no');
+				if (noRadio) {
+					noRadio.addEventListener('change', function() {
+						document.getElementById('guests-section').style.display = 'none';
+						document.getElementById('submit-button').disabled = false;
+					});
+				}
+				
+				// Initialize UI state
+				this.updateSubmitButton();
+				
+				// Check if YES is selected on load
+				if (document.querySelector('input[name="party_attending"][value="yes"]')?.checked) {
+					document.getElementById('guests-section').style.display = 'block';
+					if (this.guests.length < this.maxGuests) {
+						document.getElementById('add-guest-button').classList.remove('hidden');
+						document.getElementById('max-guests-message').classList.add('hidden');
+					}
+				}
+			},
+			
+			// Add a new guest
+			addGuest: function() {
+				if (this.guests.length >= this.maxGuests) {
+					return; // Max guests reached
+				}
+				
+				// Create a new guest with temporary ID
+				const guest = {
+					id: this.nextTempId--,
+					invitationEmail: document.querySelector('input[name="invitation_id"]').value,
+					name: "",
+					attending: { valid: true, bool: true },
+					mealPreference: { valid: false, string: "" },
+					dietaryRestrictions: { valid: false, string: "" }
+				};
+				
+				// Add to our collection
+				this.guests.push(guest);
+				
+				// Render the guest card
+				this.renderGuest(guest, this.guests.length - 1);
+				
+				// Check if we've reached max guests
+				if (this.guests.length >= this.maxGuests) {
+					document.getElementById('add-guest-button').classList.add('hidden');
+					document.getElementById('max-guests-message').classList.remove('hidden');
+				}
+				
+				// Enable submit button since we now have at least one guest
+				document.getElementById('submit-button').disabled = false;
+				
+				// Update guest counters
+				this.updateGuestCounters();
+			},
+			
+			// Handle guest removal
+			handleRemoveGuest: function(e) {
+				const btn = e.currentTarget;
+				const card = btn.closest('.guest-card');
+				const guestId = parseInt(card.dataset.guestId);
+				
+				// Confirm deletion
+				const confirmMsg = btn.dataset.confirmMessage || "Are you sure you want to remove this guest?";
+				if (!confirm(confirmMsg)) {
+					return;
+				}
+				
+				// Find guest index
+				const index = this.guests.findIndex(g => g.id === guestId);
+				if (index !== -1) {
+					// Remove from array
+					this.guests.splice(index, 1);
+					
+					// Remove from DOM
+					card.remove();
+					
+					// Show add button if below max
+					if (this.guests.length < this.maxGuests) {
+						document.getElementById('add-guest-button').classList.remove('hidden');
+						document.getElementById('max-guests-message').classList.add('hidden');
+					}
+					
+					// Update submit button state - disable if we removed all guests
+					const isAttending = document.querySelector('input[name="party_attending"][value="yes"]')?.checked || false;
+					if (isAttending && this.guests.length === 0) {
+						document.getElementById('submit-button').disabled = true;
+					}
+					
+					// Update guest counters
+					this.updateGuestCounters();
+				}
+			},
+			
+			// Render a single guest card
+			renderGuest: function(guest, index) {
+				// Clone the template
+				const template = document.getElementById('guest-card-template');
+				const card = template.content.cloneNode(true).querySelector('.guest-card');
+				
+				// Set data attributes and IDs
+				card.dataset.guestId = guest.id;
+				
+				// Set form field names and values
+				const idInput = card.querySelector('.guest-id-input');
+				idInput.value = guest.id;
+				
+				const nameInput = card.querySelector('.guest-name-input');
+				nameInput.name = `guest_name_${guest.id}`;
+				nameInput.value = guest.name || "";
+				
+				const mealSelect = card.querySelector('.guest-meal-input');
+				mealSelect.name = `guest_meal_${guest.id}`;
+				if (guest.mealPreference && guest.mealPreference.valid) {
+					mealSelect.value = guest.mealPreference.string;
+				}
+				
+				const dietaryInput = card.querySelector('.guest-dietary-input');
+				dietaryInput.name = `guest_dietary_${guest.id}`;
+				if (guest.dietaryRestrictions && guest.dietaryRestrictions.valid) {
+					dietaryInput.value = guest.dietaryRestrictions.string;
+				}
+				
+				// Set name display
+				if (guest.name) {
+					card.querySelector('.guest-name').textContent = guest.name;
+					card.querySelector('.guest-name').classList.remove('hidden');
+					card.querySelector('.guest-placeholder').classList.add('hidden');
+				}
+				
+				// Set counter
+				card.querySelector('.guest-counter').textContent = (index + 1).toString();
+				
+				// Add event listeners
+				card.querySelector('.remove-guest-button').addEventListener('click', this.handleRemoveGuest.bind(this));
+				
+				// Add to container
+				document.getElementById('guests-container').appendChild(card);
+			},
+			
+			// Render all guests
+			renderAllGuests: function() {
+				// Clear container
+				const container = document.getElementById('guests-container');
+				container.innerHTML = '';
+				
+				// Render each guest
+				this.guests.forEach((guest, index) => {
+					this.renderGuest(guest, index);
+				});
+			},
+			
+			// Update guest counters
+			updateGuestCounters: function() {
+				document.querySelectorAll('.guest-card').forEach((card, index) => {
+					card.querySelector('.guest-counter').textContent = (index + 1).toString();
+				});
+			},
+			
+			// Update submit button state
+			updateSubmitButton: function() {
+				const isAttending = document.querySelector('input[name="party_attending"][value="yes"]')?.checked || false;
+				const isNotAttending = document.querySelector('input[name="party_attending"][value="no"]')?.checked || false;
+				const submitButton = document.getElementById('submit-button');
+				
+				if (isAttending) {
+					// When attending YES is selected, require at least one guest
+					submitButton.disabled = this.guests.length === 0;
+				} else if (isNotAttending) {
+					// When attending NO is selected, always enable the submit button
+					submitButton.disabled = false;
+				} else {
+					// When nothing is selected, disable the button
+					submitButton.disabled = true;
+				}
+			}
+		};
+		
+		// Initialize when DOM is ready
+		document.addEventListener('DOMContentLoaded', function() {
+			RSVP.init();
+		});
+	</script>
 }
 
-// SuccessMessage renders a success message after RSVP submission
+// Success message after RSVP submission
 templ SuccessMessage(email string, r *http.Request) {
 	<div class="text-center py-8">
 		<div class="bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg mb-6 inline-block">
@@ -256,7 +449,7 @@ templ SuccessMessage(email string, r *http.Request) {
 	</div>
 }
 
-// RSVPStatus renders the RSVP status page
+// Status page after RSVP
 templ RSVPStatus(email string, guests []models.Guest, hasPrimaryContactOnly bool, r *http.Request) {
 	@AuthBase(i18n.T(middleware.GetLanguage(r), "rsvp.status.title")+" - "+email, r) {
 		<div class="max-w-4xl mx-auto">
@@ -282,8 +475,7 @@ templ RSVPStatus(email string, guests []models.Guest, hasPrimaryContactOnly bool
 						<ul role="list" class="divide-y divide-gray-200">
 							for _, guest := range guests {
 								if hasPrimaryContactOnly && guest.Name == "Primary Contact" {
-									// For the "Primary Contact" auto-entry, show a simplified response
-									// to better reflect that they haven't added actual guests
+									<!-- Primary Contact auto-entry -->
 									<li class="px-4 py-4 sm:px-6 text-center">
 										<div class="mb-2">
 											if guest.Attending.Valid && !guest.Attending.Bool {
@@ -361,6 +553,88 @@ templ RSVPStatus(email string, guests []models.Guest, hasPrimaryContactOnly bool
 	}
 }
 
+// GuestCard renders an individual guest card
+templ GuestCard(guest models.Guest, mealOptions []string, index int, r *http.Request) {
+	<div class="guest-card bg-gray-50 p-5 rounded-lg border border-gray-200" data-guest-id={ strconv.FormatInt(guest.ID, 10) }>
+		<div class="flex justify-between items-start mb-4">
+			<div class="flex items-center">
+				<span class="guest-counter bg-primary text-white rounded-full w-7 h-7 flex items-center justify-center mr-3">
+					{ strconv.Itoa(index + 1) }
+				</span>
+				<h3 class="text-lg font-semibold text-gray-800">
+					if guest.Name == "" {
+						<span class="italic text-gray-500 guest-placeholder">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.guest_placeholder") }</span>
+						<span class="guest-name hidden"></span>
+					} else {
+						<span class="guest-name">{ guest.Name }</span>
+						<span class="guest-placeholder hidden">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.guest_placeholder") }</span>
+					}
+				</h3>
+			</div>
+			<button
+				type="button"
+				class="text-red-500 hover:text-red-700 text-sm remove-guest-button"
+				data-confirm-message={ i18n.T(middleware.GetLanguage(r), "rsvp.form.remove_confirm") }
+			>
+				{ i18n.T(middleware.GetLanguage(r), "rsvp.form.remove") }
+			</button>
+		</div>
+		<input type="hidden" name="guest_ids[]" value={ strconv.FormatInt(guest.ID, 10) } class="guest-id-input"/>
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<div>
+				<label class="block text-gray-700 text-sm font-medium mb-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.guest_placeholder") }</label>
+				<input
+					type="text"
+					name={ fmt.Sprintf("guest_name_%d", guest.ID) }
+					value={ guest.Name }
+					class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-transparent guest-name-input"
+					required="required"
+				/>
+			</div>
+			<div>
+				<label class="block text-gray-700 text-sm font-medium mb-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.meal_preference") }</label>
+				<select
+					name={ fmt.Sprintf("guest_meal_%d", guest.ID) }
+					class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-transparent guest-meal-input"
+				>
+					for _, meal := range mealOptions {
+						if guest.MealPreference.Valid && guest.MealPreference.String == meal {
+							<option value={ meal } selected>
+								{ getMealTranslation(middleware.GetLanguage(r), meal) }
+							</option>
+						} else {
+							<option value={ meal }>
+								{ getMealTranslation(middleware.GetLanguage(r), meal) }
+							</option>
+						}
+					}
+				</select>
+			</div>
+		</div>
+		<div class="mt-4">
+			<label class="block text-gray-700 text-sm font-medium mb-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.dietary_notes") }</label>
+			<textarea
+				name={ fmt.Sprintf("guest_dietary_%d", guest.ID) }
+				rows="2"
+				class="block w-full bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-transparent guest-dietary-input"
+				placeholder={ i18n.T(middleware.GetLanguage(r), "rsvp.form.dietary_notes_placeholder") }
+			>
+				if guest.DietaryRestrictions.Valid {
+					{ guest.DietaryRestrictions.String }
+				}
+			</textarea>
+		</div>
+	</div>
+}
+
+// Helper function to convert bool to string
+func boolToStr(b bool) string {
+	if b {
+		return "true"
+	}
+	return "false"
+}
+
 // Helper function to check if any guests are attending
 func anyGuestsAttending(guests []models.Guest) bool {
 	for _, guest := range guests {
@@ -423,4 +697,12 @@ func formatMaxGuestsMessage(lang, key string, max int) string {
 	msg := i18n.T(lang, key)
 	// Simple string replacement - in a real app you'd want something more robust
 	return strings.Replace(msg, "{0}", strconv.Itoa(max), -1)
+}
+
+// Helper function to handle conditional expressions
+func cond(condition bool, trueVal, falseVal string) string {
+	if condition {
+		return trueVal
+	}
+	return falseVal
 }

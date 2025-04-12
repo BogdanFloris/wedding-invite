@@ -116,6 +116,7 @@
       "cancel": "Cancel",
       "add": "Add",
       "remove": "Remove",
+      "remove_confirm": "Are you sure you want to remove this guest?",
       "attending": "Attending",
       "not_attending": "Cannot attend",
       "max_guests": "Maximum number of guests: {0}",

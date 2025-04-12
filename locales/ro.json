@@ -116,6 +116,7 @@
       "cancel": "Anulează",
       "add": "Adaugă",
       "remove": "Șterge",
+      "remove_confirm": "Ești sigur că vrei să ștergi acest invitat?",
       "attending": "Participă",
       "not_attending": "Nu poate participa",
       "max_guests": "Număr maxim de invitați: {0}",
