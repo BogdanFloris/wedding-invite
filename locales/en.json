@@ -4,13 +4,13 @@
     "logout": "Logout"
   },
   "login": {
-    "title": "R & B",
-    "subtitle": "Join us for our special day!",
-    "form_title": "Enter Your Email Address",
+    "title": "Meet us at the palace!",
+    "subtitle": "Ramona & Bogdan",
+    "form_text_one": "We are delighted to have you join us on our special day!",
+    "form_text_two": "Enter your email address to access all the wedding details:",
     "email_label": "Email Address",
     "email_placeholder": "your.email@example.com",
-    "email_help": "We'll use this to track your RSVP and send you updates.",
-    "submit": "Access Wedding Details",
+    "submit": "Access your invitation",
     "errors": {
       "invalid_email": "Invalid email address. Please check and try again.",
       "auth_required": "Please enter your email to continue.",

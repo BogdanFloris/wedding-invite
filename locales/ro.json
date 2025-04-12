@@ -4,13 +4,13 @@
     "logout": "Deconectare"
   },
   "login": {
-    "title": "R & B",
-    "subtitle": "Alăturați-vă nouă în ziua noastră specială!",
-    "form_title": "Introduceți adresa dvs. de email",
+    "title": "Meet us at the palace!",
+    "subtitle": "Ramona & Bogdan",
+    "form_text_one": "Suntem bucuroși să vă avem alături în ziua noastră specială!",
+    "form_text_two": "Introduceți adresa de email pentru a accesa toate detaliile legate de nuntă:",
     "email_label": "Adresa de Email",
     "email_placeholder": "email@exemplu.ro",
-    "email_help": "Vom folosi adresa pentru a vă trimite actualizări despre nuntă.",
-    "submit": "Accesați detaliile nunții",
+    "submit": "Accesați invitația",
     "errors": {
       "invalid_email": "Adresă de email invalidă. Vă rugăm să verificați și să încercați din nou.",
       "auth_required": "Vă rugăm să introduceți adresa de email pentru a continua.",
