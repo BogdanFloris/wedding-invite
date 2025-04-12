@@ -28,8 +28,9 @@ templ RSVPFormContent(email, invitationEmail string, guests []models.Guest, canA
 						if anyGuestsAttending(guests) {
 							checked
 						}
+						onclick="document.getElementById('guests-section').style.display = 'block'; updateSubmitButton();"
 					/>
-					<span class="ml-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.attending") }</span>
+					<span class="ml-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.attending_yes") }</span>
 				</label>
 				<label class="inline-flex items-center">
 					<input
@@ -41,24 +42,24 @@ templ RSVPFormContent(email, invitationEmail string, guests []models.Guest, canA
 						if allGuestsNotAttending(guests) {
 							checked
 						}
+						onclick="document.getElementById('guests-section').style.display = 'none'; document.getElementById('submit-button').disabled = false;"
 					/>
-					<span class="ml-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.not_attending") }</span>
+					<span class="ml-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.attending_no") }</span>
 				</label>
 			</div>
 		</div>
-		if len(guests) == 0 && canAddGuest {
+		
+		<!-- Guest Information Section - only shown when attending is Yes -->
+		<div id="guests-section" class="mb-6">
 			<div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-8">
 				<p class="text-center text-yellow-800">
 					{ i18n.T(middleware.GetLanguage(r), "rsvp.form.initialText") }
 				</p>
 			</div>
-		}
-		<!-- Guest Information Section -->
-		<div class="mb-6">
+			
 			if len(guests) > 0 {
 				<div class="flex justify-between items-center mb-4">
-					<h3 class="text-lg font-semibold text-gray-700">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.guests") }</h3>
-					<!-- Removed max guests counter -->
+					<h3 class="text-lg font-semibold text-gray-700">{ i18n.T(middleware.GetLanguage(r), "rsvp.form.group_title") }</h3>
 				</div>
 				<div id="guests-container" class="space-y-4">
 					for i, guest := range guests {
@@ -66,6 +67,7 @@ templ RSVPFormContent(email, invitationEmail string, guests []models.Guest, canA
 					}
 				</div>
 			}
+			
 			if canAddGuest && len(guests) < maxGuests {
 				<div class="mt-6 text-center">
 					<button
@@ -83,15 +85,51 @@ templ RSVPFormContent(email, invitationEmail string, guests []models.Guest, canA
 				</div>
 			}
 		</div>
+		
 		<div class="mt-8 flex justify-center">
 			<button
 				type="submit"
 				class="bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-md transition duration-300"
+				id="submit-button"
 			>
 				{ i18n.T(middleware.GetLanguage(r), "rsvp.form.submit") }
 			</button>
 		</div>
 	</form>
+	
+	<script>
+		// JavaScript to handle showing/hiding guest section and enabling/disabling submit button
+		document.addEventListener('DOMContentLoaded', function() {
+			const yesRadio = document.querySelector('input[name="party_attending"][value="yes"]');
+			const noRadio = document.querySelector('input[name="party_attending"][value="no"]');
+			const guestsSection = document.getElementById('guests-section');
+			
+			// Set initial state
+			if (yesRadio.checked) {
+				guestsSection.style.display = 'block';
+			} else if (noRadio.checked) {
+				guestsSection.style.display = 'none';
+			} else {
+				// Default state if nothing is checked
+				guestsSection.style.display = 'none';
+			}
+			
+			// Update submit button
+			updateSubmitButton();
+		});
+		
+		function updateSubmitButton() {
+			const isAttending = document.querySelector('input[name="party_attending"][value="yes"]').checked;
+			const guestCount = document.querySelectorAll('input[name="guest_ids[]"]').length;
+			const submitButton = document.getElementById('submit-button');
+			
+			if (isAttending) {
+				submitButton.disabled = guestCount === 0;
+			} else {
+				submitButton.disabled = false;
+			}
+		}
+	</script>
 }
 
 // RSVPForm renders the RSVP form
@@ -99,9 +137,10 @@ templ RSVPForm(email, invitationEmail string, guests []models.Guest, canAddGuest
 	@AuthBase(i18n.T(middleware.GetLanguage(r), "rsvp.title")+" - "+email, r) {
 		<div class="max-w-4xl mx-auto">
 			<div class="bg-white rounded-lg shadow-md p-8 mb-8">
-				<h1 class="text-3xl font-bold text-primary-dark mb-6 text-center">{ i18n.T(middleware.GetLanguage(r), "rsvp.title") }</h1>
+				<h1 class="text-3xl font-bold text-primary-dark mb-4 text-center">{ i18n.T(middleware.GetLanguage(r), "rsvp.title") }</h1>
 				<div class="mb-6 text-center">
-					<p class="text-lg text-gray-600 mb-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.subtitle") }</p>
+					<p class="text-lg text-gray-600 mb-4">{ i18n.T(middleware.GetLanguage(r), "rsvp.welcome") }</p>
+					<p class="text-lg text-gray-700 mb-2">{ i18n.T(middleware.GetLanguage(r), "rsvp.subtitle") }</p>
 					<p class="text-xl font-semibold text-primary-dark mb-4">{ email }</p>
 					<p class="text-sm text-gray-500 mb-6">{ i18n.T(middleware.GetLanguage(r), "rsvp.deadline") }</p>
 				</div>
@@ -115,9 +154,12 @@ templ RSVPForm(email, invitationEmail string, guests []models.Guest, canAddGuest
 					@RSVPFormContent(email, invitationEmail, guests, canAddGuest, maxGuests, mealOptions, r)
 				</div>
 				<div class="mt-8 pt-6 border-t border-gray-200 text-center">
-					<p class="text-sm text-gray-500">
+					<p class="text-sm text-gray-500 mb-4">
 						{ i18n.T(middleware.GetLanguage(r), "rsvp.form.footer") }
 					</p>
+					<a href="/wedding" class="text-primary hover:text-primary-dark underline">
+						{ i18n.T(middleware.GetLanguage(r), "rsvp.back_to_details") }
+					</a>
 				</div>
 			</div>
 		</div>
@@ -146,6 +188,7 @@ templ GuestCard(guest models.Guest, mealOptions []string, index int, r *http.Req
 				hx-target="#rsvp-container"
 				hx-swap="innerHTML"
 				class="text-red-500 hover:text-red-700 text-sm"
+				onclick="setTimeout(updateSubmitButton, 100);"
 			>
 				{ i18n.T(middleware.GetLanguage(r), "rsvp.form.remove") }
 			</button>
@@ -298,12 +341,18 @@ templ RSVPStatus(email string, guests []models.Guest, hasPrimaryContactOnly bool
 							}
 						</ul>
 					</div>
-					<div class="flex justify-center">
+					<div class="flex justify-center gap-4">
 						<a
 							href="/rsvp"
 							class="inline-block bg-primary hover:bg-primary-dark text-white font-medium py-2 px-6 rounded-md transition duration-300"
 						>
 							{ i18n.T(middleware.GetLanguage(r), "rsvp.status.edit_rsvp") }
+						</a>
+						<a
+							href="/wedding"
+							class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-6 rounded-md transition duration-300"
+						>
+							{ i18n.T(middleware.GetLanguage(r), "rsvp.status.back_button") }
 						</a>
 					</div>
 				}

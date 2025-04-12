@@ -67,26 +67,32 @@
   },
   "rsvp": {
     "title": "Confirmă Participarea",
-    "subtitle": "Vă rugăm să confirmați prezența pentru",
-    "deadline": "Vă rugăm să răspundeți până la 1 septembrie 2025",
+    "welcome": "Ne bucurăm că ne ești alături în această poveste!",
+    "subtitle": "Te rugăm să confirmi prezența pentru",
+    "deadline": "Răspunsul tău este așteptat până la 15 august 2025",
+    "back_to_details": "Înapoi la detalii",
     "success": "Mulțumim!",
     "success_message": "Confirmarea pentru {0} a fost înregistrată cu succes.",
     "status": {
       "title": "Statusul Confirmării",
       "subtitle": "Status confirmare curent pentru",
-      "no_guests": "Nu ați adăugat încă niciun invitat.",
-      "start_rsvp": "Începeți confirmarea",
-      "your_guests": "Invitații dvs.",
+      "no_guests": "Nu ai adăugat încă niciun invitat.",
+      "start_rsvp": "Începe confirmarea",
+      "your_guests": "Invitații tăi",
       "details": "Detalii",
-      "edit_rsvp": "Editați confirmarea",
+      "edit_rsvp": "Editează confirmarea",
       "attending": "Participă",
       "not_attending": "Nu participă",
       "not_responded": "Fără răspuns",
-      "declined_message": "Ați indicat că nu veți participa la nuntă."
+      "declined_message": "Ai indicat că nu vei participa la nuntă.",
+      "back_button": "Înapoi la detalii"
     },
     "form": {
-      "initialText": "Vă rugăm să introduceți numele dumneavoastră și ale oaspeților suplimentari în formularul de mai jos.",
-      "question": "Va participa grupul dumneavoastră?",
+      "initialText": "Te rugăm să completezi numele tău și al celor care te vor însoți la palat în formularul de mai jos:",
+      "group_title": "Grupul tău festiv",
+      "question": "Vei participa la eveniment?",
+      "attending_yes": "Sigur, ne vedem acolo!",
+      "attending_no": "Din păcate, nu putem ajunge",
       "guests": "Invitați",
       "add_guest": "Adaugă Invitat",
       "guest_placeholder": "Numele invitatului",
@@ -105,7 +111,7 @@
         "not_selected": "Neselectat"
       },
       "dietary_notes": "Note dietetice adiționale",
-      "dietary_notes_placeholder": "Orice alergii sau preferințe speciale",
+      "dietary_notes_placeholder": "Alergii sau alte preferințe speciale",
       "submit": "Trimite Confirmarea",
       "cancel": "Anulează",
       "add": "Adaugă",
@@ -113,7 +119,7 @@
       "attending": "Participă",
       "not_attending": "Nu poate participa",
       "max_guests": "Număr maxim de invitați: {0}",
-      "footer": "Dacă aveți nevoie să modificați răspunsul la invitație după ce l-ați trimis, puteți reveni pe această pagină oricând."
+      "footer": "Dacă ai nevoie să îți modifici răspunsul, poți reveni oricând pe această pagină. Ușa palatului rămâne deschisă!"
     }
   },
   "footer": {

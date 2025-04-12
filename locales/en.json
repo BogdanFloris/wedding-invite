@@ -67,8 +67,10 @@
   },
   "rsvp": {
     "title": "RSVP",
+    "welcome": "We're delighted to have you join us in this story!",
     "subtitle": "Please confirm your attendance for",
-    "deadline": "Kindly respond by September 1, 2025",
+    "deadline": "Your response is expected by August 15, 2025",
+    "back_to_details": "Back to details",
     "success": "Thank You!",
     "success_message": "Your RSVP for {0} has been successfully recorded.",
     "status": {
@@ -82,11 +84,15 @@
       "attending": "Attending",
       "not_attending": "Not Attending",
       "not_responded": "Not Responded",
-      "declined_message": "You indicated that you will not be attending the wedding."
+      "declined_message": "You indicated that you will not be attending the wedding.",
+      "back_button": "Back to details"
     },
     "form": {
-      "question": "Will your party be attending?",
-      "initialText": "Please add yourself and any additional guests below.",
+      "initialText": "Please fill in your name and those who will join you at the palace in the form below:",
+      "group_title": "Your festive group",
+      "question": "Will you be attending the event?",
+      "attending_yes": "Absolutely, see you there!",
+      "attending_no": "Unfortunately, we cannot make it",
       "guests": "Guests",
       "add_guest": "Add Guest",
       "guest_placeholder": "Guest name",
@@ -105,7 +111,7 @@
         "not_selected": "Not selected"
       },
       "dietary_notes": "Additional dietary notes",
-      "dietary_notes_placeholder": "Any allergies or special requirements",
+      "dietary_notes_placeholder": "Allergies or other special preferences",
       "submit": "Submit RSVP",
       "cancel": "Cancel",
       "add": "Add",
@@ -113,7 +119,7 @@
       "attending": "Attending",
       "not_attending": "Cannot attend",
       "max_guests": "Maximum number of guests: {0}",
-      "footer": "If you need to make changes to your RSVP after submitting, you can return to this page anytime."
+      "footer": "If you need to modify your response, you can return to this page anytime. The palace door remains open!"
     }
   },
   "footer": {
