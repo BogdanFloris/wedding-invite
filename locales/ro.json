@@ -78,7 +78,7 @@
       "subtitle": "Status confirmare curent pentru",
       "no_guests": "Nu ai adăugat încă niciun invitat.",
       "start_rsvp": "Începe confirmarea",
-      "your_guests": "Invitații tăi",
+      "your_guests": "Grupul tău festiv",
       "details": "Detalii",
       "edit_rsvp": "Editează confirmarea",
       "attending": "Participă",
@@ -90,7 +90,7 @@
     "form": {
       "initialText": "Te rugăm să completezi numele tău și al celor care te vor însoți la palat în formularul de mai jos:",
       "group_title": "Grupul tău festiv",
-      "question": "Vei participa la eveniment?",
+      "question": "Veți participa la eveniment?",
       "attending_yes": "Sigur, ne vedem acolo!",
       "attending_no": "Din păcate, nu putem ajunge",
       "guests": "Invitați",
