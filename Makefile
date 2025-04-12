@@ -13,9 +13,10 @@ build: generate
 	@echo "Building application..."
 	go build -o wedding-app ./cmd/server
 
-# Run the application in development mode
+# Run the application in development mode with hot reload
 dev: generate
 	@echo "Starting development server with hot reload..."
+	templ generate --watch &
 	air
 
 # Run the application

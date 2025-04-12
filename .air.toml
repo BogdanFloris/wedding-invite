@@ -4,19 +4,19 @@ tmp_dir = "tmp"
 
 [build]
 # Just plain old shell command. You could use `make` as well.
-cmd = "templ generate && go build -o ./tmp/main ./cmd/server"
+cmd = "go build -o ./tmp/main ./cmd/server"
 # Binary file yields from `cmd`.
 bin = "tmp/main"
 # Customize binary.
 full_bin = "./tmp/main"
 # Watch these filename extensions.
-include_ext = ["go", "templ"]
+include_ext = ["go"]
 # Ignore these filename extensions or directories.
 exclude_dir = ["tmp", ".git", "static"]
 # Watch these directories if you specified.
 include_dir = ["cmd", "pkg", "templates"]
 # Exclude files.
-exclude_file = []
+exclude_file = ["*_templ.go"]
 # This log file places in your tmp_dir.
 log = "air.log"
 # It's not necessary to trigger build each time file changes if it's too frequent.
