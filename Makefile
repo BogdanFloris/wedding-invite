@@ -15,8 +15,8 @@ build: generate
 
 # Run the application in development mode
 dev: generate
-	@echo "Starting development server..."
-	go run cmd/server/main.go
+	@echo "Starting development server with hot reload..."
+	air
 
 # Run the application
 run: build
