@@ -70,6 +70,45 @@ func GetGuestsByInvitation(email string) ([]Guest, error) {
 	return guests, nil
 }
 
+// GetAllGuests retrieves all guests from the database
+func GetAllGuests() ([]Guest, error) {
+	rows, err := db.DB.Query(`
+		SELECT id, invitation_email, name, attending, meal_preference, 
+		       dietary_restrictions, last_updated
+		FROM guests
+		ORDER BY invitation_email, id
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var guests []Guest
+
+	for rows.Next() {
+		var g Guest
+		if err := rows.Scan(
+			&g.ID,
+			&g.InvitationEmail,
+			&g.Name,
+			&g.Attending,
+			&g.MealPreference,
+			&g.DietaryRestrictions,
+			&g.LastUpdated,
+		); err != nil {
+			return nil, err
+		}
+
+		guests = append(guests, g)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return guests, nil
+}
+
 // CreateGuest adds a new guest to the database
 func CreateGuest(email, name string) (int64, error) {
 	result, err := db.DB.Exec(`

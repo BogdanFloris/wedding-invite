@@ -65,6 +65,7 @@ func main() {
 	mux.Handle("/wedding", handlers.Wedding())
 	mux.Handle("/rsvp", handlers.HandleRSVP())
 	mux.Handle("/rsvp/status", handlers.HandleRSVPStatus())
+	mux.Handle("/admin/guests", handlers.HandleAdminGuests())
 	
 	// HTMX endpoints for the RSVP flow
 	mux.Handle("/rsvp/submit", handlers.HandleSubmitRSVP())
